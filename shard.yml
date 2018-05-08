@@ -1,0 +1,17 @@
+name: crystal_coin
+version: 0.1.0
+
+authors:
+  - eqbal <info@eqbalq.com>
+
+dependencies:
+  openssl:
+    github: datanoise/openssl.cr
+
+targets:
+  crystal_coin:
+    main: src/crystal_coin.cr
+
+crystal: 0.24.2
+
+license: MIT
