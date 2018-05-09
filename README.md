@@ -1,4 +1,4 @@
-# Build my Blockchains from scratch using Ruby
+# Build a Blockchain from scratch using Crystal
 
 ### Intro
 
@@ -21,9 +21,9 @@
 
 
 
-### Steps 
+## Steps 
 
-- Create the skeleton of the app:
+### Create the skeleton of the app:
 
 ```ruby
 % crystal init app crystal_coin
@@ -39,6 +39,10 @@
       create  crystal_coin/spec/crystal_coin_spec.cr
 Initialized empty Git repository in /Users/eqbal/code/blockchain/ruby_coin/crystal_coin/.git/
 ```
+
+### What’s Blockchain?
+
+- It’s a list (chain) of blocks linked and secured by digital fingerprints (also known as crypto hashes).
 
 - Create `src/crystal_coin/block.cr`
 
@@ -62,5 +66,12 @@ end
 
 puts CrystalCoin::Block.new("Hello, Cryptos!").hash
 ```
+
+```ruby
+crystal_coin [master●] % crystal src/crystal_coin/block.cr
+33eedea60b0662c66c289ceba71863a864cf84b00e10002ca1069bf58f9362d5
+```
+
+- Easiest way to think of it as a linked list. It's not really a linked list tho,  A linked list is only required to have a reference to the previous element, a block must have an identifier depending on the previous block’s identifier, meaning that you cannot replace a block without recomputing every single block that comes after.
 
 
