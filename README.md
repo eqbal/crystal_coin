@@ -136,24 +136,32 @@ We’ll start by first defining what our blocks will look like. In Block, each b
 module CrystalCoin
   class Block
 
-    def initialize(index : Int32, data : String, previous_hash : String)
+    def initialize(index = 1, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
-      @hash = calculate_hash
     end
 
-    def calculate_hash
+    def hash
       hash = OpenSSL::Digest.new("SHA256")
-      combined_data = @index + @timestamp + @data @previous_hash
-      hash.update(combined_data)
+      hash.update("#{@index}#{@timestamp}#{@data}#{@previous_hash}")
       hash.hexdigest
     end
   end
 end
+
+puts CrystalCoin::Block.new(data: "Same Data").hash
 ```
 
+Now note that the same data will generate two different hashes because of different timestamps:
+
+```
+crystal_coin [master●] % crystal src/crystal_coin/block.cr
+361d0df74e28d37b71f6c5f579ee182dd3d41f73f174dc88c9f2536172d3bb66
+crystal_coin [master●] % crystal src/crystal_coin/block.cr
+b1fafd81ba13fc21598fb083d9429d1b8a7e9a7120dbdacc7e461791b96b9bf3
+```
 
 
 
