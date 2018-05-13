@@ -195,7 +195,7 @@ This function will take the previous block in the chain as a parameter, create t
 
 If we didn’t do this, it would be easier for an outside party to “change the past” and replace our chain with an entirely new one of their own. This chain of hashes acts as cryptographic proof and helps ensure that once a block is added to the blockchain it cannot be replaced or removed. Let's create the class method `next`:
 
-```
+```ruby
 def self.next(previous_node, data = "Transaction Data")
   Block.new(
     data: "Transaction data number (#{previous_node.index + 1})",
@@ -207,7 +207,7 @@ end
 
 Now let's try it out all together, we'll create a simple  blockchain. The first element of the list is the genesis block. And of course, we need to add the succeeding blocks. We'll create 10 new blocks to demonstrate `CrystalCoin`:
 
-```
+```ruby
 blockchain = [ CrystalCoin::Block.first ]
 
 previous_block = blockchain[0]
