@@ -189,6 +189,51 @@ puts CrystalCoin::Block.first.inspect
 #<CrystalCoin::Block:0x10b33ac80 @current_hash="acb701a9b70cff5a0617d654e6b8a7155a8c712910d34df692db92455964d54e", @data="Genesis Block", @index=0, @timestamp=2018-05-13 17:54:02 +03:00, @previous_hash="0">
 ```
 
+Now that we’re able to create a genesis block, we need a function that will generate succeeding blocks in the blockchain.
+
+This function will take the previous block in the chain as a parameter, create the data for the block to be generated, and return the new block with its appropriate data. When new blocks hash information from previous blocks, the integrity of the blockchain increases with each new block. 
+
+If we didn’t do this, it would be easier for an outside party to “change the past” and replace our chain with an entirely new one of their own. This chain of hashes acts as cryptographic proof and helps ensure that once a block is added to the blockchain it cannot be replaced or removed. Let's create the class method `next`:
+
+```
+def self.next(previous_node, data = "Transaction Data")
+  Block.new(
+    data: "Transaction data number (#{previous_node.index + 1})",
+    index: previous_node.index + 1,
+    previous_hash: previous_hash.hash
+  )
+end
+```
+
+Now let's try it out all together, we'll create a simple  blockchain. The first element of the list is the genesis block. And of course, we need to add the succeeding blocks. We'll create 10 new blocks to demonstrate `CrystalCoin`:
+
+```
+blockchain = [ CrystalCoin::Block.first ]
+
+previous_block = blockchain[0]
+
+10.times do |i|
+  new_block  = CrystalCoin::Block.next(previous_block: previous_block)
+  blockchain << new_block
+  previous_block = new_block
+  puts new_block.inspect
+end
+
+```
+
+```
+#<CrystalCoin::Block:0x10e04abc0 @current_hash="a6d92e0787b005f25b7d4b132a71c16bdb2dbabad917d82bcdae6f2aac87b2a2", @index=1, @data="Transaction data number (1)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="c3b15c18b025cebaaa7302254910708d2ace1dd05b1a489034c25c87e579e889">
+#<CrystalCoin::Block:0x10e04aa80 @current_hash="fc0566969686cd3e9cb70e6bae86019e89b41a601fab874364df4937254c71b9", @index=2, @data="Transaction data number (2)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="a6d92e0787b005f25b7d4b132a71c16bdb2dbabad917d82bcdae6f2aac87b2a2">
+#<CrystalCoin::Block:0x10e04a980 @current_hash="cfec59ec174f7efccacd0de52a771116dae7084e38cd69cff4c6309b3da86bc5", @index=3, @data="Transaction data number (3)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="fc0566969686cd3e9cb70e6bae86019e89b41a601fab874364df4937254c71b9">
+#<CrystalCoin::Block:0x10e04a880 @current_hash="1e50b43d893b832d210ab95777f81c413cc10b30a78b8f1a0ed895a7a8766ea0", @index=4, @data="Transaction data number (4)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="cfec59ec174f7efccacd0de52a771116dae7084e38cd69cff4c6309b3da86bc5">
+#<CrystalCoin::Block:0x10e04a780 @current_hash="3ba86566e340209cfc8e59572dc76c1caa191752894d9e31da14db7e00902376", @index=5, @data="Transaction data number (5)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="1e50b43d893b832d210ab95777f81c413cc10b30a78b8f1a0ed895a7a8766ea0">
+#<CrystalCoin::Block:0x10e04a680 @current_hash="4edc238c38efb37311129201f6938aaa6b170d95d51112745b738cd9cb738386", @index=6, @data="Transaction data number (6)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="3ba86566e340209cfc8e59572dc76c1caa191752894d9e31da14db7e00902376">
+#<CrystalCoin::Block:0x10e04a580 @current_hash="e5974f5fef832fe6a3d81c7cf8342c05d198d114da5c333cbe85e84e30344567", @index=7, @data="Transaction data number (7)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="4edc238c38efb37311129201f6938aaa6b170d95d51112745b738cd9cb738386">
+#<CrystalCoin::Block:0x10e04a480 @current_hash="ec308e41c8361fe6d11eb99c89a67f4173446fcf683d9e109511fcb20782c2ab", @index=8, @data="Transaction data number (8)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="e5974f5fef832fe6a3d81c7cf8342c05d198d114da5c333cbe85e84e30344567">
+#<CrystalCoin::Block:0x10e04a380 @current_hash="035dd1a88f47f534b09a6d43b1ee2be365df6beb87b03edb4750489d82f3178b", @index=9, @data="Transaction data number (9)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="ec308e41c8361fe6d11eb99c89a67f4173446fcf683d9e109511fcb20782c2ab">
+#<CrystalCoin::Block:0x10e04a280 @current_hash="47a43a7e9a980dc3e7d08c671a02d44f7293e41a7c2059c7f118c1e0a562b6e3", @index=10, @data="Transaction data number (10)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="035dd1a88f47f534b09a6d43b1ee2be365df6beb87b03edb4750489d82f3178b">
+```
+
 
 For simplicity, our `CrystalCoin` Block will contain only few attributes:
 
