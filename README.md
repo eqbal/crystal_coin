@@ -136,14 +136,17 @@ We’ll start by first defining what our blocks will look like. In Block, each b
 module CrystalCoin
   class Block
 
-    def initialize(index = 1, data = "data", previous_hash = "hash")
+    property current_hash : String
+
+    def initialize(index = 0, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
+      @current_hash = hash_block
     end
 
-    def hash
+    private def hash_block
       hash = OpenSSL::Digest.new("SHA256")
       hash.update("#{@index}#{@timestamp}#{@data}#{@previous_hash}")
       hash.hexdigest
@@ -151,10 +154,11 @@ module CrystalCoin
   end
 end
 
-puts CrystalCoin::Block.new(data: "Same Data").hash
+
+puts CrystalCoin::Block.new(data: "Same Data"). current_hash
 ```
 
-Now note that the same data will generate two different hashes because of different timestamps:
+Note that the same data will generate different hashes because of the different timestamps:
 
 ```
 crystal_coin [master●] % crystal src/crystal_coin/block.cr
@@ -163,9 +167,30 @@ crystal_coin [master●] % crystal src/crystal_coin/block.cr
 b1fafd81ba13fc21598fb083d9429d1b8a7e9a7120dbdacc7e461791b96b9bf3
 ```
 
+Cool! We have our block structure, but we’re creating a blockchain. We need to start adding blocks to the actual chain. As I mentioned earlier, each block requires information from the previous block. But with that being said, a question arises: how does the first block in the blockchain get there? Well, the first block, or `genesis` block, is a special block (a block with no predecessors). In many cases, it’s added manually or has unique logic allowing it to be added.
+
+We’ll create a function that simply returns a genesis block to make things easy. This block is of index=0, and it has an arbitrary data value and an arbitrary value in the “previous hash” parameter.
+
+I'll create a class method `first` that generates the genesis block:
+
+```ruby
+def self.first(data="Genesis Block")
+  Block.new(data: data, previous_hash: "0")
+end
+```
+
+Now let's try it out:
+
+```ruby
+puts CrystalCoin::Block.first.inspect
+```
+
+```
+#<CrystalCoin::Block:0x10b33ac80 @current_hash="acb701a9b70cff5a0617d654e6b8a7155a8c712910d34df692db92455964d54e", @data="Genesis Block", @index=0, @timestamp=2018-05-13 17:54:02 +03:00, @previous_hash="0">
+```
 
 
-Every blockchain has a Genesis block which is the first block in the chain. For simplicity, our `CrystalCoin` Block will contain only few attributes:
+For simplicity, our `CrystalCoin` Block will contain only few attributes:
 
 ```
 1) index: indicates the index of the block ex: 0,1
