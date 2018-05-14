@@ -1,17 +1,21 @@
-require "openssl"
+require "./proof_of_work"
 
 module CrystalCoin
   class Block
 
     property current_hash : String
     property index : Int32
+    property nonce : ( Int32 | String )
+    property timestamp : Time
+    property data : String
+    property previous_hash : String
 
     def initialize(index = 0, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
-      @current_hash = hash_block
+      @nonce, @current_hash = calculate_hash
     end
 
     def self.first(data = "Genesis Block")
@@ -26,11 +30,9 @@ module CrystalCoin
       )
     end
 
-    private def hash_block
-      hash = OpenSSL::Digest.new("SHA256")
-      hash.update("#{@index}#{@timestamp}#{@data}#{@previous_hash}")
-      hash.hexdigest
-    end
+      private def calculate_hash
+        ProofOfWork.new(self).run
+      end
   end
 end
 
@@ -38,7 +40,7 @@ blockchain = [ CrystalCoin::Block.first ]
 
 previous_block = blockchain[0]
 
-10.times do |i|
+5.times do |i|
   new_block  = CrystalCoin::Block.next(previous_block: previous_block)
   blockchain << new_block
   previous_block = new_block
