@@ -3,19 +3,21 @@ require "./proof_of_work"
 module CrystalCoin
   class Block
 
-    property current_hash : String
+    property current_hash : (String | Int32)
     property index : Int32
-    property nonce : ( Int32 | String )
+    property nonce : (Int32 | String)
     property timestamp : Time
     property data : String
-    property previous_hash : String
+    property previous_hash : (String | Int32)
 
     def initialize(index = 0, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
-      @nonce, @current_hash = calculate_hash
+      @nonce = 1
+      @current_hash = "current"
+      @nonce, @current_hash = ProofOfWork.new(self).run
     end
 
     def self.first(data = "Genesis Block")
@@ -29,15 +31,11 @@ module CrystalCoin
         previous_hash: previous_block.current_hash
       )
     end
-
-      private def calculate_hash
-        ProofOfWork.new(self).run
-      end
   end
 end
 
 blockchain = [ CrystalCoin::Block.first ]
-
+puts blockchain.inspect
 previous_block = blockchain[0]
 
 5.times do |i|

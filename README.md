@@ -249,7 +249,7 @@ hash(x * y) = 00ac23dc...
 
 And for this simplified example, let’s fix x = 5. Implementing this in Crystal:
 
-```
+```ruby
 x = 5
 y = 0
 
@@ -291,10 +291,126 @@ Now let's redesign our Block class to support that. Our `CrystalCoin` Block will
 
 ![blockchain_list](./assets/blockchain-attributes.png).
 
-I'll be using single responsibly principle [SRP](https://en.wikipedia.org/wiki/Single_responsibility_principle), so I'll create a separate class to do the hashing and find the Nonce:
+I'll be using single responsibly principle [SRP](https://en.wikipedia.org/wiki/Single_responsibility_principle), so I'll create a separate class to do the hashing and find the Nonce and I'll call it `proof_of_work.cr`:
 
+```ruby
+require "openssl"
 
+module CrystalCoin
+  class ProofOfWork
+    property block : CrystalCoin::Block
 
+    def initialize(block)
+      @block = block
+    end
+
+    def run(difficulty = "00")
+      nonce = 0
+      loop do
+        hash = calc_hash_with_nonce(nonce)
+        if hash[0..1] == difficulty
+          return [nonce, hash]
+        else
+          nonce += 1
+        end
+      end
+    end
+
+      private def calc_hash_with_nonce(nonce = 0)
+        sha = OpenSSL::Digest.new("SHA256")
+        sha.update("#{nonce}#{block.index}#{block.timestamp}#{block.data}#{block.previous_hash}")
+        sha.hexdigest
+      end
+  end
+end
+
+```
+
+Now our Block class would look something like:
+
+```ruby
+require "./proof_of_work"
+
+module CrystalCoin
+  class Block
+
+    property current_hash : String
+    property index : Int32
+    property nonce : Int32
+    property timestamp : Time
+    property data : String
+    property previous_hash : String
+
+    def initialize(index = 0, data = "data", previous_hash = "hash")
+      @data = data
+      @index = index
+      @timestamp = Time.now
+      @previous_hash = previous_hash
+      @nonce, @current_hash = ProofOfWork.new(self).run
+    end
+
+    def self.first(data = "Genesis Block")
+      Block.new(data: data, previous_hash: "0")
+    end
+
+    def self.next(previous_block, data = "Transaction Data")
+      Block.new(
+        data: "Transaction data number (#{previous_block.index + 1})",
+        index: previous_block.index + 1,
+        previous_hash: previous_block.current_hash
+      )
+    end
+  end
+end
+
+```
+
+Let's try to create 5 transactions using:
+
+```ruby
+blockchain = [ CrystalCoin::Block.first ]
+puts blockchain.inspect
+previous_block = blockchain[0]
+
+5.times do |i|
+  new_block  = CrystalCoin::Block.next(previous_block: previous_block)
+  blockchain << new_block
+  previous_block = new_block
+  puts new_block.inspect
+end
+```
+
+```
+[#<CrystalCoin::Block:0x108f8fea0 @current_hash="0088ca080a49334e1cb037ed4c42795d635515ef1742e6bcf439bf0f95711759", @index=0, @nonce=17, @timestamp=2018-05-14 17:20:46 +03:00, @data="Genesis Block", @previous_hash="0">]
+#<CrystalCoin::Block:0x108f8f660 @current_hash="001bc2b04d7ad8ef25ada30e2bde19d7bbbbb3ad42348017036b0d4974d0ccb0", @index=1, @nonce=24, @timestamp=2018-05-14 17:20:46 +03:00, @data="Transaction data number (1)", @previous_hash="0088ca080a49334e1cb037ed4c42795d635515ef1742e6bcf439bf0f95711759">
+#<CrystalCoin::Block:0x109fc5ba0 @current_hash="0019256c998028111838b872a437cd8adced53f5e0f8f43388a1dc4654844fe5", @index=2, @nonce=61, @timestamp=2018-05-14 17:20:46 +03:00, @data="Transaction data number (2)", @previous_hash="001bc2b04d7ad8ef25ada30e2bde19d7bbbbb3ad42348017036b0d4974d0ccb0">
+#<CrystalCoin::Block:0x109fdc300 @current_hash="0080a30d0da33426a1d4f36d870d9eb709eaefb0fca62cc68e497169c5368b97", @index=3, @nonce=149, @timestamp=2018-05-14 17:20:46 +03:00, @data="Transaction data number (3)", @previous_hash="0019256c998028111838b872a437cd8adced53f5e0f8f43388a1dc4654844fe5">
+#<CrystalCoin::Block:0x109ff58a0 @current_hash="00074399d51c700940e556673580a366a37dec16671430141f6013f04283a484", @index=4, @nonce=570, @timestamp=2018-05-14 17:20:46 +03:00, @data="Transaction data number (4)", @previous_hash="0080a30d0da33426a1d4f36d870d9eb709eaefb0fca62cc68e497169c5368b97">
+#<CrystalCoin::Block:0x109fde120 @current_hash="00720bb6e562a25c19ecd2b277925057626edab8981ff08eb13773f9bb1cb842", @index=5, @nonce=475, @timestamp=2018-05-14 17:20:46 +03:00, @data="Transaction data number (5)", @previous_hash="00074399d51c700940e556673580a366a37dec16671430141f6013f04283a484">
+```
+See the difference? Now all hashes start with '00'. That's the magic of the proof-of-work. Using `ProofOfWork` we found the (nonce) and proof is the hash with the matching difficulty, that is, the two leading zeros `00`.
+
+Note with the first block we created, we tried 17 nonces until finding the matching lucky number:
+
+| Block | Loops / Number of Hash calculations |
+|-------|-------------------------------------|
+| #0    | 17                                  |
+| #1    | 24                                  |
+| #2    | 61                                  |
+| #3    | 149                                 |
+| #4    | 570                                 |
+| #5    | 475                                 |
+
+Let's try a difficulty of four leading zeros '0000' (let's use difficulty="0000" in `ProofOfWork#run`):
+
+| Block | Loops / Number of Hash calculations |
+|-------|-------------------------------------|
+| #1    | 26 762                              |
+| #2    | 68 419                              |
+| #3    | 23 416                              |
+| #4    | 15 353                              |
+
+In the first block tried 26762 nonces (compare 17 nonces with difficulty '00') until finding the matching lucky number.
 
 ### Our Blockchain as an API
 
