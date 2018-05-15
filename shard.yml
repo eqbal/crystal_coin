@@ -7,6 +7,8 @@ authors:
 dependencies:
   openssl:
     github: datanoise/openssl.cr
+  kemal:
+    github: kemalcr/kemal
 
 targets:
   crystal_coin:

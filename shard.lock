@@ -1,6 +1,18 @@
 version: 1.0
 shards:
+  kemal:
+    github: kemalcr/kemal
+    version: 0.22.0
+
+  kilt:
+    github: jeromegn/kilt
+    version: 0.4.0
+
   openssl:
     github: datanoise/openssl.cr
     commit: afb878a03068abbf73548a7e57f86f739f449cfa
+
+  radix:
+    github: luislavena/radix
+    version: 0.3.8
 

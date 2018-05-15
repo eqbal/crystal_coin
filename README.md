@@ -438,6 +438,57 @@ We'll create three end-points:
 
 We're going to use [Kermal](https://github.com/kemalcr/kemal) web framework. It’s a micro-framework and it makes it easy to map endpoints to Crystal functions. If you are coming from Ruby backgrounds, think of Kermal as an equivalent of [Sinatra](http://sinatrarb.com/) framework. If you are looking for a more advanced framework to create a database driven application (the equivalent of [Ruby on Rails](https://rubyonrails.org/)) then you have to try [Amber](https://github.com/amberframework/amber). In my case I didn't want to create a DB and use scaffolding so I decided to use Kermal to keep things simple.
 
+Our server will form a single node in our blockchain network. Let's first add kemal to the `shard.yml` file as a dependency:
+
+```
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+```
+
+And then let's install the dependencies using `shards install`:
+
+Now let's build the skeleton of our HTTP server:
+
+```ruby
+# src/server.cr
+
+require "kemal"
+require "./crystal_coin"
+
+get "/chain" do
+  "Send the blockchain as json objects"
+end
+
+get "/mine" do
+  "We'll mine a new Block"
+end
+
+post "/transactions/new" do
+  "We'll add a new transaction"
+end
+
+Kemal.run
+```
+
+Let's run the server:
+
+```
+crystal_coin [master●●] % crystal run src/server.cr
+[development] Kemal is ready to lead at http://0.0.0.0:3000
+```
+
+Let's make sure the server is working fine: 
+
+```
+% curl http://0.0.0.0:3000/chain
+Send the blockchain as json objects%
+```
+
+Ok so far so good. Now we can proceed with implementing each of the endpoints.
+
+
+
 ### Notes 
 
 - I want to use Crystal [Amber](https://github.com/amberframework/amber) framework to handle transactions, the framework is heavily inspired by Rails framework so we can build an interface (RESTful API in our case to trigger some events like send a transaction ..etc)
