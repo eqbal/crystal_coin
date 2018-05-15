@@ -31,7 +31,7 @@ For now think of blockchain as a series of blocks with some data, linked with a 
 
 The entire blockchain would exist on each one of the node that wants to interact with it, meaning it is copied on each one of the nodes in the network. So, no single server hosts it, which makes it decentralized.
 
-Yes this is weird compared to the conventional centralized systems. Each of the nodes will have a copy of the entire blockchain (> 200 Gb).
+Yes this is weird compared to the conventional centralized systems. Each of the nodes will have a copy of the entire blockchain (> 200 Gb in Bitcoin blockchain).
 
 ### Hash?
 
@@ -414,6 +414,29 @@ In the first block tried 26762 nonces (compare 17 nonces with difficulty '00') u
 
 ### Our Blockchain as an API
 
+So far, so good. We created our simple blockchain and it was relatively easy to make. But the problem here is that `CrystalCoin` can only ran on one single machine (it's not distributed or decentralized).
+
+From now on we'll start using JSON data for CrystalCoin, the data will be transactions, so each block’s data field will be a list of some transactions.
+
+Each transaction will be a JSON object detailing the `sender` of the coin, the `receiver` of the coin, and the `amount` of SnakeCoin that is being transferred:
+
+```
+{
+  "from": "71238uqirbfh894-random-public-key-a-alkjdflakjfewn204ij",
+  "to": "93j4ivnqiopvh43-random-public-key-b-qjrgvnoeirbnferinfo",
+  "amount": 3
+}
+```
+
+Now that we know what our transactions will look like, we need a way to add them to one of the computers in our blockchain network, called a `node`. To do that, we’ll create a simple HTTP server so that any user can let our nodes know that a new transaction has occurred. A node will be able to accept a POST request with a transaction (like above) as the request body. This is why transactions are JSON formatted; we need them to be transmitted to our server in a request body.
+
+We'll create three end-points:
+
+- `/transactions/new`: to create a new transaction to a block
+- `/mine`: to tell our server to mine a new block.
+- `/chain`: to return the full Blockchain.
+
+We're going to use [Kermal](https://github.com/kemalcr/kemal) web framework. It’s a micro-framework and it makes it easy to map endpoints to Crystal functions. If you are coming from Ruby backgrounds, think of Kermal as an equivalent of [Sinatra](http://sinatrarb.com/) framework. If you are looking for a more advanced framework to create a database driven application (the equivalent of [Ruby on Rails](https://rubyonrails.org/)) then you have to try [Amber](https://github.com/amberframework/amber). In my case I didn't want to create a DB and use scaffolding so I decided to use Kermal to keep things simple.
 
 ### Notes 
 
