@@ -485,15 +485,11 @@ Let's make sure the server is working fine:
 Send the blockchain as json objects%
 ```
 
-Ok so far so good. Now we can proceed with implementing each of the endpoints.
+Ok so far so good. Now we can proceed with implementing each of the endpoints. Let's start with implementing `/transactions/new` end-point:
+
+We'll add `this_nodes_transactions` array to store the transactions that this node has in a list.
 
 
 
-### Notes 
-
-- I want to use Crystal [Amber](https://github.com/amberframework/amber) framework to handle transactions, the framework is heavily inspired by Rails framework so we can build an interface (RESTful API in our case to trigger some events like send a transaction ..etc)
-
-
-For simplicity, 
 ### References
 - [Original paper](http://nakamotoinstitute.org/bitcoin/)
