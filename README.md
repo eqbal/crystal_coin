@@ -496,14 +496,48 @@ Let's make sure the server is working fine:
 % curl http://0.0.0.0:3000/chain
 Send the blockchain as json objects%
 ```
+But before I want to add a few more helpers for the node:
+
+```ruby
+this_node_transactions = [] of Hash(String, Int64 | String)
+this_node_chain = [] of CrystalCoin::Block
+
+# Create the genesis block
+genesis_block = CrystalCoin::Block.first
+
+# Add Genesis block to the chain
+this_node_chain << genesis_block
+
+# Generate a globally unique address for this node
+node_identifier = UUID.random.to_s
+
+
+get "/chain" do
+  ....
+end
+
+get "/mine" do
+  ....
+end
+
+post "/transactions/new" do |env|
+  ....
+end
+
+```
+
+We added `this_nodes_transactions` array to store the transactions that this node has in a list. Note specifying the type `Hash(String, Int64 | String)` which mean `[]` will contains hashes with key as a string type and value as integer or string (`from/to` or `amount`). The same goes with `this_node_chain` list which contains a list of `CrystalCoin::Block` objects type. 
+
+Then we created the genesis block for this node using `CrystalCoin::Block.first`, and added it to `this_node_chain` list.
+
+Finally we created a unique identifier for the node using the built-in `UUID.random.to_s`.
 
 Ok so far so good. Now we can proceed with implementing each of the endpoints. Let's start with implementing `/transactions/new` end-point:
-
-We'll add `this_nodes_transactions` array to store the transactions that this node has in a list.
 
 ```ruby
 this_nodes_transactions = [] of Hash(String, Int64 | String)
 
+# Creates a new transaction to go into the next mined Block
 post "/transactions/new" do |env|
   transaction = {
     "from"   => env.params.json["from"].as(String),

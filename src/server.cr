@@ -1,15 +1,23 @@
 require "kemal"
+require "uuid"
+
 require "./crystal_coin"
 
 before_all do |env|
   env.response.content_type = "application/json"
 end
 
-this_nodes_transactions = [] of Hash(String, Int64 | String)
+this_node_transactions = [] of Hash(String, Int64 | String)
+this_node_chain = [] of CrystalCoin::Block
 
-miner_address = "q3nf394hjg-random-miner-address-34nf3i4nflkn3oi"
+# Create the genesis block
+genesis_block = CrystalCoin::Block.first
+
+# Add Genesis block to the chain
+this_node_chain << genesis_block
+
 # Generate a globally unique address for this node
-#node_identifier = str(uuid4()).replace('-', '')
+node_identifier = UUID.random.to_s
 
 get "/chain" do
   this_nodes_transactions.inspect
@@ -19,7 +27,7 @@ get "/mine" do
   "We'll mine a new Block"
 end
 
-
+# Creates a new transaction to go into the next mined Block
 post "/transactions/new" do |env|
   transaction = {
     "from"   => env.params.json["from"].as(String),
