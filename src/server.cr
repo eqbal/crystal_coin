@@ -7,6 +7,10 @@ end
 
 this_nodes_transactions = [] of Hash(String, Int64 | String)
 
+miner_address = "q3nf394hjg-random-miner-address-34nf3i4nflkn3oi"
+# Generate a globally unique address for this node
+#node_identifier = str(uuid4()).replace('-', '')
+
 get "/chain" do
   this_nodes_transactions.inspect
 end

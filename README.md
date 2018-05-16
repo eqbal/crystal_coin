@@ -291,39 +291,33 @@ Now let's redesign our Block class to support that. Our `CrystalCoin` Block will
 
 ![blockchain_list](./assets/blockchain-attributes.png).
 
-I'll be using single responsibly principle [SRP](https://en.wikipedia.org/wiki/Single_responsibility_principle), so I'll create a separate class to do the hashing and find the Nonce and I'll call it `proof_of_work.cr`:
+I'll create a separate module to do the hashing and find the `nonce` so we keep our code clean and modular. I'll call it `proof_of_work.cr`:
 
 ```ruby
 require "openssl"
 
 module CrystalCoin
-  class ProofOfWork
-    property block : CrystalCoin::Block
+  module ProofOfWork
 
-    def initialize(block)
-      @block = block
-    end
-
-    def run(difficulty = "00")
+    private def proof_of_work(difficulty = "00")
       nonce = 0
       loop do
         hash = calc_hash_with_nonce(nonce)
         if hash[0..1] == difficulty
-          return [nonce, hash]
+          return nonce
         else
           nonce += 1
         end
       end
     end
 
-      private def calc_hash_with_nonce(nonce = 0)
-        sha = OpenSSL::Digest.new("SHA256")
-        sha.update("#{nonce}#{block.index}#{block.timestamp}#{block.data}#{block.previous_hash}")
-        sha.hexdigest
-      end
+    private def calc_hash_with_nonce(nonce = 0)
+      sha = OpenSSL::Digest.new("SHA256")
+      sha.update("#{nonce}#{@index}#{@timestamp}#{@data}#{@previous_hash}")
+      sha.hexdigest
+    end
   end
 end
-
 ```
 
 Now our Block class would look something like:
@@ -333,20 +327,19 @@ require "./proof_of_work"
 
 module CrystalCoin
   class Block
+    include ProofOfWork
 
     property current_hash : String
     property index : Int32
     property nonce : Int32
-    property timestamp : Time
-    property data : String
-    property previous_hash : String
 
     def initialize(index = 0, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
-      @nonce, @current_hash = ProofOfWork.new(self).run
+      @nonce = proof_of_work
+      @current_hash = calc_hash_with_nonce(@nonce)
     end
 
     def self.first(data = "Genesis Block")
@@ -365,7 +358,26 @@ end
 
 ```
 
-Let's try to create 5 transactions using:
+Few things to note about Crystal code. In Crystal methods are public by default, Crystal requires each private method to be prefixed with the private keyword which could be confusing coming from Ruby.
+
+Another thing to note here, that the ruby `attr_accessor`, `attr_getter` and `attr_setter` methods are replaced with new keywords:
+
+| Ruby Keyword  | Crystal Keyword |
+|---------------|-----------------|
+| attr_accessor | property        |
+| attr_reader   | getter          |
+| attr_writer   | setter          |
+
+
+In Crystal you want to hint the compiler about specific types through your code. Crystal infers the types, but whenever you have ambiguity you can explicitly declare types as well. That's why we added the types for `current_hash`, `index` and `nonce`. 
+
+You might noticed that for Crystal's Integer types there are `Int8`, `Int16`, `Int32`, `Int64`, `UInt8`, `UInt16`, `UInt32`, or `UInt64` compared to Ruby's `Fixnum`. `true` and `false` are values in the `Bool` class rather than values in classes `TrueClass` or `FalseClass` in Ruby.
+
+Crystal has optional and named method arguments as core language features, and does not require writing special code for handling the arguments which is pretty cool. Check out `Block#initialize(index = 0, data = "data", previous_hash = "hash")` and then calling it with something like `Block.new(data: data, previous_hash: "0")`.
+
+For a more detailed list of differences between Crystal and Ruby programming language check out [Crystal for Rubyists](https://github.com/crystal-lang/crystal/wiki/Crystal-for-Rubyists).
+
+Now, let's try to create 5 transactions using:
 
 ```ruby
 blockchain = [ CrystalCoin::Block.first ]
@@ -489,7 +501,45 @@ Ok so far so good. Now we can proceed with implementing each of the endpoints. L
 
 We'll add `this_nodes_transactions` array to store the transactions that this node has in a list.
 
+```ruby
+this_nodes_transactions = [] of Hash(String, Int64 | String)
+
+post "/transactions/new" do |env|
+  transaction = {
+    "from"   => env.params.json["from"].as(String),
+    "to"     => env.params.json["to"].as(String),
+    "amount" => env.params.json["amount"].as(Int64)
+  }
+
+  this_nodes_transactions << transaction
+
+  "Transaction #{transaction} has been added to the node transactions"
+end
+
+```
+
+Now we have a way to keep a record of users when they send CrystalCoint to each other. This is why people refer to blockchains as public, distributed ledgers: all transactions are stored for all to see and are stored on every node in the network.
+
+I'm sure at this stage, you are asking yourself: where do people get CrystalCoins from? Nowhere, yet. There’s no such thing as a CrystalCoin yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of CrystalCoin. When they successfully mine new blocks, a new CrystalCoin is created and rewarded to the person who mined the block. The coin then gets circulated once the miner sends the SnakeCoin to another person.
+
+In CrystalCoin, we’ll use the simple Proof-of-Work algorithm we created earlier. To create a new block, a miner’s computer will have to find the the proof number of the last block, then a new CrystalCoin block will be mined and the miner will be given a brand new CrystalCoin.
+
+So to implement `/mine` end-point, we need:
+
+- Get the last proof of work in the blockchain
+- Find the proof of work for the current block being mined
+- Once we find a valid proof of work, we know we can mine a block so we reward the miner by adding a transaction
+- Finally, we gather the data needed to create the new block
+
+
+### What is next?
+#### Consensus
+
+This is very cool. We’ve got a basic Blockchain that accepts transactions and allows us to mine new Blocks. But the whole point of Blockchains is that they should be decentralized. And if they’re decentralized, how on earth do we ensure that they all reflect the same chain? This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network.
 
 
 ### References
 - [Original paper](http://nakamotoinstitute.org/bitcoin/)
+
+### Notes
+

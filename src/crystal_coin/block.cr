@@ -2,22 +2,19 @@ require "./proof_of_work"
 
 module CrystalCoin
   class Block
+    include ProofOfWork
 
-    property current_hash : (String | Int32)
+    property current_hash : String
     property index : Int32
-    property nonce : (Int32 | String)
-    property timestamp : Time
-    property data : String
-    property previous_hash : (String | Int32)
+    property nonce : Int32
 
     def initialize(index = 0, data = "data", previous_hash = "hash")
       @data = data
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
-      @nonce = 1
-      @current_hash = "current"
-      @nonce, @current_hash = ProofOfWork.new(self).run
+      @nonce = proof_of_work
+      @current_hash = calc_hash_with_nonce(@nonce)
     end
 
     def self.first(data = "Genesis Block")
