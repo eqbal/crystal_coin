@@ -466,6 +466,73 @@ end
 
 The transactions are packed into blocks. So a block can contain one or many transactions. The blocks containing the transactions are generated frequently and added to the blockchain. 
 
+The blockchain is supposed to be a collection of blocks. We can store all of the blocks in the Crystal list, and that's why we introduce the new class `Blockchain`:
+
+`Blockchain` will have `chain` and `uncommited_transactions` arrays. The `chain` will include all the mined blocks in the blockchain, and `uncommited_transactions` will have all the transactions that has not been added to the blockchain (still not mined). Once we initialize `Blockchain`, we create genesis block and add it to `chain` array and we add an empty `uncommited_transactions` array. 
+
+We will create `Blockchain#add_transaction` method as well to add transactions to `uncommited_transactions` array.
+
+We will create the skeleton of two more functions `Blockchain#mine` and `Blockchain#add_block`. For now we'll keep both empty and we will discuss the implementation once we work on `/mine` end-point. So for now our `Blockchain` class looks something like:
+
+```ruby
+require "./block"
+require "./transaction"
+
+module CrystalCoin
+  class Blockchain
+    getter chain
+    getter uncommited_transactions
+
+    def initialize
+      @chain = [ Block.first ]
+      @uncommited_transactions = [] of Block::Transaction
+    end
+
+    def add_transaction(transaction)
+      @uncommited_transactions << transaction
+    end
+
+    def mine
+      # This function serves as an interface to add the pending
+      # transactions to the blockchain by adding them to the block
+      # and figuring out Proof of Work
+    end
+
+    def add_block
+      # A function that adds the block to the chain after verification
+    end
+  end
+end
+
+```
+
+And the changes for `Block`:
+
+```diff
+diff --git a/src/crystal_coin/block.cr b/src/crystal_coin/block.cr
+index a7ef7d9..2c7f219 100644
+--- a/src/crystal_coin/block.cr
++++ b/src/crystal_coin/block.cr
+@@ -9,7 +9,7 @@ module CrystalCoin
+     property index : Int32
+     property nonce : Int32
+
+-    def initialize(index = 0, transactions = [], previous_hash = "hash")
++    def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
+       @transactions = transactions
+       @index = index
+       @timestamp = Time.now
+@@ -22,7 +22,7 @@ module CrystalCoin
+       Block.new(previous_hash: "0")
+     end
+
+-    def self.next(previous_block, transactions = [])
++    def self.next(previous_block, transactions = [] of Transaction)
+       Block.new(
+         transactions: transactions,
+         index: previous_block.index + 1,
+```
+
 Now that we know what our transactions will look like, we need a way to add them to one of the computers in our blockchain network, called a `node`. To do that, we’ll create a simple HTTP server so that any user can let our nodes know that a new transaction has occurred. A node will be able to accept a POST request with a transaction (like above) as the request body. This is why transactions are JSON formatted; we need them to be transmitted to our server in a request body.
 
 We'll create three end-points:

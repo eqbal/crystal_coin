@@ -9,7 +9,7 @@ module CrystalCoin
     property index : Int32
     property nonce : Int32
 
-    def initialize(index = 0, transactions = [], previous_hash = "hash")
+    def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
       @transactions = transactions
       @index = index
       @timestamp = Time.now
@@ -22,7 +22,7 @@ module CrystalCoin
       Block.new(previous_hash: "0")
     end
 
-    def self.next(previous_block, transactions = [])
+    def self.next(previous_block, transactions = [] of Transaction)
       Block.new(
         transactions: transactions,
         index: previous_block.index + 1,
