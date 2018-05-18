@@ -2,13 +2,17 @@
 
 ### Intro
 
-In this article, I'll explore the internals of blockchain by building a coin called Crystal Coin from scratch. We will simplify most of the things like complexity, algorithm choices etc.
+If you heard of Blockchain, Proof of work, hashing etc. and you know the theoretical part but you are still not convinced as you think the only way to understand the details is by digging deeper into the implementation, then this article is for you.
+
+I'm not by any mean an expert blockchain engineer, but thought the easiest way to understand Blockchain is by implementing a new one from scratch.
+
+In this article, I'll explore the internals of blockchain by building a coin called CrystalCoin from scratch. We will simplify most of the things like complexity, algorithm choices etc.
 
 Focusing on the details of a concrete example will provide a deeper understanding of the strengths and limitations of blockchains.
 
 >I will assume you have a basic understanding of Object Oriented Programming
 
-For a better demonstration, I want to use a productive language like [ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations and that's why a compiled languages (like C++ and JAVA) are the languages to go. That being said I want to use a language with a better syntax so I can keep the development fun and allow better demonstration for the ideas.
+For a better demonstration, I want to use a productive language like [ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (_mining_ and hashing) and that's why a compiled languages (like C++ and JAVA) are the languages of choice to build production-ready coins. That being said I want to use a language with a better syntax so I can keep the development fun and allow better demonstration for the ideas.
 
 So, what I want to use? [Crystal](https://crystal-lang.org/) language. Crystal’s syntax is heavily inspired by Ruby’s, so it feels natural to read and easy to write, and has the added benefit of a lower learning curve for experienced Ruby devs. Their slogan is:
 
@@ -47,7 +51,7 @@ Using `SHA256` we'll always resulting a 64 hexadecimal chars (256-bit) in length
 
 | Input                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Hashed Results                                                   |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT | cf49bbb21c8b7c078165919d7e57c145ccb7f398e7b58d9a3729de368d86294a |
+| VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEX VERY LONG TEXT VERY LONG  VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT | cf49bbb21c8b7c078165919d7e57c145ccb7f398e7b58d9a3729de368d86294a |
 | Toptal                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 2e4e500e20f1358224c08c7fb7d3e0e9a5e4ab7a013bfd6774dfa54d7684dd21 |
 | Toptal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 12075307ce09a6859601ce9d451d385053be80238ea127c5df6e6611eed7c6f0 |
 
@@ -439,6 +443,28 @@ Each transaction will be a JSON object detailing the `sender` of the coin, the `
   "amount": 3
 }
 ```
+
+A few modifications to our `Block` class to support the new `transaction` format (previously	we called it `data`). So, just to avoid confusion and maintain consistency, we'll be using the term `ransaction` to refer to `data` posted in our example application.
+
+We'll introduce a new simple class `Transaction`:
+
+```ruby
+module CrystalCoin
+  class Block
+    class Transaction
+
+      property from : String
+      property to : String
+      property amount : Int32
+
+      def initialize(@from, @to, @amount)
+      end
+    end
+  end
+end
+```
+
+The transactions are packed into blocks. So a block can contain one or many transactions. The blocks containing the transactions are generated frequently and added to the blockchain. 
 
 Now that we know what our transactions will look like, we need a way to add them to one of the computers in our blockchain network, called a `node`. To do that, we’ll create a simple HTTP server so that any user can let our nodes know that a new transaction has occurred. A node will be able to accept a POST request with a transaction (like above) as the request body. This is why transactions are JSON formatted; we need them to be transmitted to our server in a request body.
 

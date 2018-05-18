@@ -17,7 +17,7 @@ module CrystalCoin
 
     private def calc_hash_with_nonce(nonce = 0)
       sha = OpenSSL::Digest.new("SHA256")
-      sha.update("#{nonce}#{@index}#{@timestamp}#{@data}#{@previous_hash}")
+      sha.update("#{nonce}#{@index}#{@timestamp}#{@transactions}#{@previous_hash}")
       sha.hexdigest
     end
   end

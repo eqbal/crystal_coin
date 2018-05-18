@@ -1,4 +1,5 @@
 require "./proof_of_work"
+require "./transaction"
 
 module CrystalCoin
   class Block
@@ -8,8 +9,8 @@ module CrystalCoin
     property index : Int32
     property nonce : Int32
 
-    def initialize(index = 0, data = "data", previous_hash = "hash")
-      @data = data
+    def initialize(index = 0, transactions = [], previous_hash = "hash")
+      @transactions = transactions
       @index = index
       @timestamp = Time.now
       @previous_hash = previous_hash
@@ -17,13 +18,13 @@ module CrystalCoin
       @current_hash = calc_hash_with_nonce(@nonce)
     end
 
-    def self.first(data = "Genesis Block")
-      Block.new(data: data, previous_hash: "0")
+    def self.first
+      Block.new(previous_hash: "0")
     end
 
-    def self.next(previous_block, data = "Transaction Data")
+    def self.next(previous_block, transactions = [])
       Block.new(
-        data: "Transaction data number (#{previous_block.index + 1})",
+        transactions: transactions,
         index: previous_block.index + 1,
         previous_hash: previous_block.current_hash
       )
