@@ -13,7 +13,7 @@ blockchain = CrystalCoin::Blockchain.new
 node_identifier = UUID.random.to_s
 
 get "/chain" do
-  #this_nodes_transactions.inspect
+  "#{blockchain.chain}"
 end
 
 get "/mine" do

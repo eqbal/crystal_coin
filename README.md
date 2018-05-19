@@ -664,7 +664,29 @@ We make sure first we have some uncommitted transactions to mine. Then we get th
 
 Now let's implement `/mine` end-point:
 
+```ruby
+get "/mine" do
+  blockchain.mine
+  "Block with index=#{blockchain.chain.last.index} is mined."
+end
 ```
+
+And for `/chain` end-point:
+
+```ruby
+get "/chain" do
+  "#{blockchain.chain}"
+end
+```
+
+#### Interacting with our Blockchain
+
+We'll be using `cURL` to interact with our API over a network.
+
+First let's fire up the server:
+
+```bash
+
 ```
 
 ### What is next?
