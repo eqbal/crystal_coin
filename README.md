@@ -1,16 +1,11 @@
 # Build a Blockchain from scratch using Crystal
 
-### Intro
 
-If you heard of Blockchain, Proof of work, hashing etc. and you know the theoretical part but you are still not convinced as you think the only way to understand the details is by digging deeper into the implementation, then this article is for you.
-
-I'm not by any mean an expert blockchain engineer, but thought the easiest way to understand Blockchain is by implementing a new one from scratch.
-
-In this article, I'll explore the internals of blockchain by building a coin called CrystalCoin from scratch. We will simplify most of the things like complexity, algorithm choices etc.
+This post is my attempt to understanding the key aspects of the blockchain by exploring the internals. I started by reading the [original paper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand blockchain is by building a new coin from scratch. So that's why I decided to create `CrystalCoin`. We will simplify most of the things like complexity, algorithm choices etc.
 
 Focusing on the details of a concrete example will provide a deeper understanding of the strengths and limitations of blockchains.
 
->I will assume you have a basic understanding of Object Oriented Programming
+I'll assume you have a basic understanding of Object Oriented Programming.
 
 For a better demonstration, I want to use a productive language like [ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (_mining_ and hashing) and that's why a compiled languages (like C++ and JAVA) are the languages of choice to build production-ready coins. That being said I want to use a language with a better syntax so I can keep the development fun and allow better demonstration for the ideas.
 
@@ -25,7 +20,7 @@ Crystal is also statically typed, which means that the compiler will help you ca
 Not gonna talk more of why Crystal is a cool programming language to learn as it's out of the scoop of this article, but please feel free check out [this](https://medium.com/@DuroSoft/why-crystal-is-the-most-promising-programming-language-of-2018-aad669d8344f) article if you are still not convinced.	
 
 
-### Blockchain?
+### Blockchain
 
 So, what is a blockchain? It’s a list (chain) of blocks linked and secured by digital fingerprints (also known as crypto hashes).
 
@@ -37,7 +32,7 @@ The entire blockchain would exist on each one of the node that wants to interact
 
 Yes this is weird compared to the conventional centralized systems. Each of the nodes will have a copy of the entire blockchain (> 200 Gb in Bitcoin blockchain).
 
-### Hash?
+### Hash and encryption
 
 So, what is this hash? Think of the hash as a function, that when we give it an a text it would return a unique finger print. 
 
@@ -701,6 +696,7 @@ Transaction #<CrystalCoin::Block::Transaction:0x10c415810 @from="eki", @to="hulk
 Now let's list the pending transactions (transactions that has not been added to the block yet):
 
 ```bash
+crystal_coin [master●] % curl http://0.0.0.0:3000/pendings
 [
   #<CrystalCoin::Block::Transaction:0x10c4159f0
     @from="eki",
@@ -789,19 +785,33 @@ require "uri"
 
 module CrystalCoin
   module Consensus
-    private def register_node(address)
+    def register_node(address : String)
       uri = URI.parse(address)
-      node_address = uri.host
+      node_address = "#{uri.scheme}:://#{uri.host}"
+      node_address = "#{node_address}:#{uri.port}" unless uri.port.nil?
       @nodes.add(node_address)
     rescue
       raise "Invalid URL"
     end
   end
 end
-
 ```
 
+And here let's create `/nodes/register` end-point:
 
+```ruby
+post "/nodes/register" do |env|
+  nodes = env.params.json["nodes"].as(Array)
+
+  raise "Empty array" if nodes.empty?
+
+  nodes.each do |node|
+    blockchain.register_node(node.to_s)
+  end
+
+  "New nodes have been added: #{blockchain.nodes}"
+end
+```
 
 
 
@@ -815,4 +825,4 @@ And that’s it! We’ve made a fairly sized blockchain at this point. Now, `Cry
 
 
 ### References
-- [Original paper](http://nakamotoinstitute.org/bitcoin/)
+- 
