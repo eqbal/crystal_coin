@@ -747,13 +747,72 @@ crystal_coin [master●] % curl http://0.0.0.0:3000/chain
 ]
 ```
 
-### Consensus
+### Consensus and decentralization
 
 This is very cool. We’ve got a basic Blockchain that accepts transactions and allows us to mine new Blocks. But the whole point of Blockchains is that they should be decentralized. And if they’re decentralized, how on earth do we ensure that they all reflect the same chain? This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network.
+
+The code that we've implemented till now is meant to run on a single computer. Even though we're linking block with hashes, we still can't trust a single entity. This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network. We need multiple nodes to maintain our blockchain.
+
+#### Registering new Nodes
+
+To implement a Consensus Algorithm, we need a way to let a node know about neighbouring nodes on the network. Each node on our network should keep a registry of other nodes on the network. Thus, we’ll need some more endpoints:
+
+- `POST: /nodes/register`: to accept a list of new nodes in the form of URLs.
+- `GET: /nodes/resolve`: to implement our Consensus Algorithm, which resolves any conflicts—to ensure a node has the correct chain.
+
+We’ll need to modify our `Blockchain`’s constructor and provide a method for registering nodes:
+
+```diff
+--- a/src/crystal_coin/blockchain.cr
++++ b/src/crystal_coin/blockchain.cr
+@@ -7,10 +7,12 @@ module CrystalCoin
+
+     getter chain
+     getter uncommitted_transactions
++    getter nodes
+
+     def initialize
+       @chain = [ Block.first ]
+       @uncommitted_transactions = [] of Block::Transaction
++      @nodes = Set(String).new [] of String
+     end
+
+     def add_transaction(transaction)
+```
+
+Note that we’ve used a set(String) to hold the list of nodes. This is a cheap way of ensuring that the addition of new nodes is idempotent, and that no matter how many times we add a specific node, it appears exactly once.
+
+Now let's add a new module to `Consensus` and implement the first method `register_node(address)`:
+
+```ruby
+require "uri"
+
+module CrystalCoin
+  module Consensus
+    private def register_node(address)
+      uri = URI.parse(address)
+      node_address = uri.host
+      @nodes.add(node_address)
+    rescue
+      raise "Invalid URL"
+    end
+  end
+end
+
+```
+
+
+
+
+
+### Conclusion 
+
+This tutorial covered the fundamentals of a public blockchain. If you followed along, you implemented a blockchain from scratch and built a simple application allowing users to share information on the blockchain.
+
+And that’s it! We’ve made a fairly sized blockchain at this point. Now, `CrystalCoin` can be launched on multiple machines to create a network, and real `CrystalCoins` can be mined.
+
+> Note: The source code is available [here](https://github.com/eqbal/crystal_coin) on Github.
 
 
 ### References
 - [Original paper](http://nakamotoinstitute.org/bitcoin/)
-
-### Notes
-
