@@ -3,6 +3,8 @@ require "./transaction"
 
 module CrystalCoin
   class Blockchain
+    BLOCK_SIZE = 25
+
     getter chain
     getter uncommitted_transactions
 
@@ -16,19 +18,14 @@ module CrystalCoin
     end
 
     def mine
-      # This function serves as an interface to add the pending
-      # transactions to the blockchain by adding them to the block
-      # and figuring out Proof of Work
-      # to be implemented
-      # raise "nothing to mine" if @uncommitted_transactions.empty?
-      # new_block = Block.new(previous_block: @chain.last, transactions: @uncommitted_transactions)
-      # @chain << new_block
-      # @uncommitted_transactions = []
-    end
+       raise "No transactions to be mined" if @uncommitted_transactions.empty?
 
-    def add_block
-      # A function that adds the block to the chain after verification
-    end
+       new_block = Block.next(
+         previous_block: @chain.last,
+         transactions: @uncommitted_transactions.shift(BLOCK_SIZE)
+       )
 
+       @chain << new_block
+    end
   end
 end

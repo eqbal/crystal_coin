@@ -17,7 +17,8 @@ get "/chain" do
 end
 
 get "/mine" do
-  "We'll mine a new Block"
+  blockchain.mine
+  "Block with index=#{blockchain.chain.last.index} is mined."
 end
 
 get "/pending" do

@@ -472,7 +472,7 @@ The blockchain is supposed to be a collection of blocks. We can store all of the
 
 We will create `Blockchain#add_transaction` method as well to add transactions to `uncommitted_transactions` array.
 
-We will create the skeleton of two more functions `Blockchain#mine` and `Blockchain#add_block`. For now we'll keep both empty and we will discuss the implementation once we work on `/mine` end-point. So for now our `Blockchain` class looks something like:
+We will create the skeleton of a one more function `Blockchain#mine`. For now we'll keep it empty and we'll discuss the implementation once we work on `/mine` end-point. So for now our `Blockchain` class looks something like:
 
 ```ruby
 require "./block"
@@ -496,10 +496,6 @@ module CrystalCoin
       # This function serves as an interface to add the pending
       # transactions to the blockchain by adding them to the block
       # and figuring out Proof of Work
-    end
-
-    def add_block
-      # A function that adds the block to the chain after verification
     end
   end
 end
@@ -626,19 +622,50 @@ end
 
 Straight forward implementation. We just create a `CrystalCoin::Block::Transaction` object and add the transaction to the `uncommitted_transactions` array using `Blockchain#add_transaction`.
 
-Now you must be asking yourself: where do people get `CrystalCoins` from? Nowhere, yet. There’s no such thing as a `CrystalCoin` yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of `CrystalCoin`. When they successfully mine new blocks, a new `CrystalCoin` is created and rewarded to the person who mined the block. 
+Now you must be asking yourself: where do people get `CrystalCoins` from? Nowhere, yet. There’s no such thing as a `CrystalCoin` yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of `CrystalCoin`. 
 
-At the moment, the transactions are initially stored in a pool of `uncommitted_transactions`. The process of putting the unconfirmed transactions in a block and computing Proof of Work is known as the mining of blocks. Once the nonce satisfying our constraints is figured out, we can say that a block has been mined, and the block is put into the blockchain.
+At the moment, the transactions are initially stored in a pool of `uncommitted_transactions`. The process of putting the unconfirmed transactions in a block and computing Proof of Work (PoW) is known as the _mining_ of blocks. Once the nonce satisfying our constraints is figured out, we can say that a block has been mined, and the block is put into the blockchain.
 
-In CrystalCoin, we’ll use the simple Proof-of-Work algorithm we created earlier. To create a new block, a miner’s computer will have to find the the proof number of the last block, then a new CrystalCoin block will be mined and the miner will be given a brand new CrystalCoin.
+In `CrystalCoin`, we’ll use the simple Proof-of-Work algorithm we created earlier. To create a new block, a miner’s computer will have to:
 
-So to implement `/mine` end-point, we need:
+- Find the last block in the `chain`
+- Find uncommitted transactions (`uncommitted_transactions`)
+- Create a new block using `Block.next`
+- Add the mined block to `chain` array
+- Clean up `uncommitted_transactions` array
 
-- Get the last proof of work in the blockchain
-- Find the proof of work for the current block being mined
-- Once we find a valid proof of work, we know we can mine a block so we reward the miner by adding a transaction
-- Finally, we gather the data needed to create the new block
+So to implement `/mine` end-point, let's first implement the above steps in `Blockchain#mine`:
 
+```diff
+ module CrystalCoin
+   class Blockchain
++    BLOCK_SIZE = 25
++
+     getter chain
+     getter uncommitted_transactions
+
+@@ -16,14 +18,15 @@ module CrystalCoin
+     end
+
+     def mine
++       raise "No transactions to be mined" if @uncommitted_transactions.empty?
++
++       new_block = Block.next(
++         previous_block: @chain.last,
++         transactions: @uncommitted_transactions.shift(BLOCK_SIZE)
++       )
++
++       @chain << new_block
+     end
+
+```
+
+We make sure first we have some uncommitted transactions to mine. Then we get the last chain using `@chain.last`, and the first `25` transactions to be mined (we are using `@uncommited_transactions.shift(BLOCK_SIZE)` to return an array of the first 25 values, then remove the elements starting at index 0).
+
+Now let's implement `/mine` end-point:
+
+```
+```
 
 ### What is next?
 #### Consensus
