@@ -8,6 +8,7 @@ module CrystalCoin
     property current_hash : String
     property index : Int32
     property nonce : Int32
+    property previous_hash : String
 
     def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
       @transactions = transactions
@@ -28,6 +29,11 @@ module CrystalCoin
         index: previous_block.index + 1,
         previous_hash: previous_block.current_hash
       )
+    end
+
+    def recalculate_hash
+      @nonce = proof_of_work
+      @current_hash = calc_hash_with_nonce(@nonce)
     end
   end
 end

@@ -813,6 +813,66 @@ post "/nodes/register" do |env|
 end
 ```
 
+Now with this implementation we might face a problem with multiple nodes. The copy of chains of a few nodes can differ. In that case, we need to agree upon some version of the chain to maintain the integrity of the entire system. We need to achieve consensus.
+
+To resolve this, we’ll make the rule that the longest valid chain is authoritative. In other words, the longest chain on the network is the de-facto one. Using this algorithm, we reach Consensus amongst the nodes in our network.
+
+Let's implement `Blockchain#valid_chain?` and `Blockchain#resolve_conflicts`. 
+
+```diff
+--- a/src/crystal_coin/block.cr
++++ b/src/crystal_coin/block.cr
+@@ -8,6 +8,7 @@ module CrystalCoin
+     property current_hash : String
+     property index : Int32
+     property nonce : Int32
++    property previous_hash : String
+
+     def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
+       @transactions = transactions
+@@ -29,6 +30,11 @@ module CrystalCoin
+         previous_hash: previous_block.current_hash
+       )
+     end
++
++    def recalculate_hash
++      @nonce = proof_of_work
++      @current_hash = calc_hash_with_nonce(@nonce)
++    end
+   end
+ end
+
+diff --git a/src/crystal_coin/consensus.cr b/src/crystal_coin/consensus.cr
+index 634d8b0..5e8ed0c 100644
+--- a/src/crystal_coin/consensus.cr
++++ b/src/crystal_coin/consensus.cr
+@@ -10,5 +10,20 @@ module CrystalCoin
+     rescue
+       raise "Invalid URL"
+     end
++
++    def valid_chain?
++      previous_hash = "0"
++
++      @chain.each do |block|
++        current_block_hash = block.current_hash
++        block.recalculate_hash
++
++        return false if current_block_hash != block.current_hash
++        return false if previous_hash != block.previous_hash
++        previous_hash = block.current_hash
++      end
++
++      return true
++    end
+   end
+ en
+```
+
+For `Blockchain#valid_chain?` we iterate through all of the blocks, and for each we recalculate the hash for each of the blocks to make sure it's the right one. Then we check each of the blocks linked correctly with their previous hashes.
+
+Now for `Blockchain#resolve_conflicts`
+
 
 
 ### Conclusion 
