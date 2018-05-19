@@ -686,11 +686,68 @@ We'll be using `cURL` to interact with our API over a network.
 First let's fire up the server:
 
 ```bash
-
+crystal_coin [master] % crystal run src/server.cr
+[development] Kemal is ready to lead at http://0.0.0.0:3000
 ```
 
-### What is next?
-#### Consensus
+Let’s first create two new transactions by making a `POST` requests to `http://localhost:3000/transactions/new` with a body containing our transaction structure:
+
+```bash
+crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"iron_man", "amount": 1000}'
+Transaction #<CrystalCoin::Block::Transaction:0x10c4159f0 @from="eki", @to="iron_man", @amount=1000_i64> has been added to the node%                                               crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"hulk", "amount": 700}'
+Transaction #<CrystalCoin::Block::Transaction:0x10c415810 @from="eki", @to="hulk", @amount=700_i64> has been added to the node%
+```
+
+Now let's list the pending transactions (transactions that has not been added to the block yet):
+
+```bash
+[
+  #<CrystalCoin::Block::Transaction:0x10c4159f0
+    @from="eki",
+    @to="iron_man",
+    @amount=1000_i64>, 
+  #<CrystalCoin::Block::Transaction:0x10c415810
+    @from="eki",
+    @to="hulk",
+    @amount=700_i64>
+]
+```
+
+So far so good, we can see, the two transactions we created earlier have been added to the `uncommitted_transactions`.
+
+Now let's mine the two transactions by making a `GET` request to `http://0.0.0.0:3000/mine`:
+
+```bash
+crystal_coin [master●] % curl http://0.0.0.0:3000/mine
+Block with index=1 is mined.%
+```
+
+Nice, sounds we successfully mined the first block and added it to our `chain`. Let's double check our `chain` and if it includes the mined block:
+
+```bash
+crystal_coin [master●] % curl http://0.0.0.0:3000/chain
+[
+  #<CrystalCoin::Block:0x10c4139c0
+    @current_hash="0071c44d429b3363bb454ce9a214396b9532b6f1ea337ce8fe480ec0d134bb2f",
+    @index=0,
+    @nonce=320,
+    @transactions=[],
+    @timestamp=2018-05-19 12:29:53 +03:00,
+    @previous_hash="0">,
+  #<CrystalCoin::Block:0x10d4631c0
+    @current_hash="006b3ea356e0b1485d3c1b6b34cb00b7387082819bb0f3247aed2ae107fc6f7c",
+    @index=1,
+    @nonce=971,
+    @transactions=[
+      #<CrystalCoin::Block::Transaction:0x10c4159f0 @from="eki", @to="iron_man", @amount=1000_i64>,
+      #<CrystalCoin::Block::Transaction:0x10c415810 @from="eki", @to="hulk", @amount=700_i64>
+    ],
+    @timestamp=2018-05-19 12:33:06 +03:00,
+    @previous_hash="0071c44d429b3363bb454ce9a214396b9532b6f1ea337ce8fe480ec0d134bb2f">
+]
+```
+
+### Consensus
 
 This is very cool. We’ve got a basic Blockchain that accepts transactions and allows us to mine new Blocks. But the whole point of Blockchains is that they should be decentralized. And if they’re decentralized, how on earth do we ensure that they all reflect the same chain? This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network.
 
