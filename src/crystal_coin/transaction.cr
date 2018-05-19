@@ -4,7 +4,7 @@ module CrystalCoin
 
       property from : String
       property to : String
-      property amount : Int32
+      property amount : Int64
 
       def initialize(@from, @to, @amount)
       end

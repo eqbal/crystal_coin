@@ -468,9 +468,9 @@ The transactions are packed into blocks. So a block can contain one or many tran
 
 The blockchain is supposed to be a collection of blocks. We can store all of the blocks in the Crystal list, and that's why we introduce the new class `Blockchain`:
 
-`Blockchain` will have `chain` and `uncommited_transactions` arrays. The `chain` will include all the mined blocks in the blockchain, and `uncommited_transactions` will have all the transactions that has not been added to the blockchain (still not mined). Once we initialize `Blockchain`, we create genesis block and add it to `chain` array and we add an empty `uncommited_transactions` array. 
+`Blockchain` will have `chain` and `uncommitted_transactions` arrays. The `chain` will include all the mined blocks in the blockchain, and `uncommitted_transactions` will have all the transactions that has not been added to the blockchain (still not mined). Once we initialize `Blockchain`, we create genesis block (using `Block.first`) and add it to `chain` array and we add an empty `uncommitted_transactions` array. 
 
-We will create `Blockchain#add_transaction` method as well to add transactions to `uncommited_transactions` array.
+We will create `Blockchain#add_transaction` method as well to add transactions to `uncommitted_transactions` array.
 
 We will create the skeleton of two more functions `Blockchain#mine` and `Blockchain#add_block`. For now we'll keep both empty and we will discuss the implementation once we work on `/mine` end-point. So for now our `Blockchain` class looks something like:
 
@@ -481,15 +481,15 @@ require "./transaction"
 module CrystalCoin
   class Blockchain
     getter chain
-    getter uncommited_transactions
+    getter uncommitted_transactions
 
     def initialize
       @chain = [ Block.first ]
-      @uncommited_transactions = [] of Block::Transaction
+      @uncommitted_transactions = [] of Block::Transaction
     end
 
     def add_transaction(transaction)
-      @uncommited_transactions << transaction
+      @uncommitted_transactions << transaction
     end
 
     def mine
@@ -540,6 +540,7 @@ We'll create three end-points:
 - `/transactions/new`: to create a new transaction to a block
 - `/mine`: to tell our server to mine a new block.
 - `/chain`: to return the full Blockchain.
+- `/pending`: to return the pending transactions
 
 We're going to use [Kermal](https://github.com/kemalcr/kemal) web framework. It’s a micro-framework and it makes it easy to map endpoints to Crystal functions. If you are coming from Ruby backgrounds, think of Kermal as an equivalent of [Sinatra](http://sinatrarb.com/) framework. If you are looking for a more advanced framework to create a database driven application (the equivalent of [Ruby on Rails](https://rubyonrails.org/)) then you have to try [Amber](https://github.com/amberframework/amber). In my case I didn't want to create a DB and use scaffolding so I decided to use Kermal to keep things simple.
 
@@ -561,12 +562,22 @@ Now let's build the skeleton of our HTTP server:
 require "kemal"
 require "./crystal_coin"
 
+# Generate a globally unique address for this node
+node_identifier = UUID.random.to_s
+
+# Create our Blockchain
+blockchain = Blockchain.new
+
 get "/chain" do
   "Send the blockchain as json objects"
 end
 
 get "/mine" do
   "We'll mine a new Block"
+end
+
+get "/pending" do
+  "Send pending transactions as json objects"
 end
 
 post "/transactions/new" do
@@ -589,65 +600,35 @@ Let's make sure the server is working fine:
 % curl http://0.0.0.0:3000/chain
 Send the blockchain as json objects%
 ```
-But before I want to add a few more helpers for the node:
+
+Ok so far so good. Now we can proceed with implementing each of the endpoints. Let's start with implementing `/transactions/new` and `pending` end-points:
 
 ```ruby
-this_node_transactions = [] of Hash(String, Int64 | String)
-this_node_chain = [] of CrystalCoin::Block
-
-# Create the genesis block
-genesis_block = CrystalCoin::Block.first
-
-# Add Genesis block to the chain
-this_node_chain << genesis_block
-
-# Generate a globally unique address for this node
-node_identifier = UUID.random.to_s
-
-
-get "/chain" do
-  ....
-end
-
-get "/mine" do
-  ....
+get "/pending" do
+  "#{blockchain.uncommitted_transactions}"
 end
 
 post "/transactions/new" do |env|
-  ....
+
+  transaction = CrystalCoin::Block::Transaction.new(
+    from: env.params.json["from"].as(String),
+    to:  env.params.json["to"].as(String),
+    amount:  env.params.json["amount"].as(Int64)
+
+  )
+
+  blockchain.add_transaction(transaction)
+
+  "Transaction #{transaction.inspect} has been added to the node"
 end
 
 ```
 
-We added `this_nodes_transactions` array to store the transactions that this node has in a list. Note specifying the type `Hash(String, Int64 | String)` which mean `[]` will contains hashes with key as a string type and value as integer or string (`from/to` or `amount`). The same goes with `this_node_chain` list which contains a list of `CrystalCoin::Block` objects type. 
+Straight forward implementation. We just create a `CrystalCoin::Block::Transaction` object and add the transaction to the `uncommitted_transactions` array using `Blockchain#add_transaction`.
 
-Then we created the genesis block for this node using `CrystalCoin::Block.first`, and added it to `this_node_chain` list.
+Now you must be asking yourself: where do people get `CrystalCoins` from? Nowhere, yet. There’s no such thing as a `CrystalCoin` yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of `CrystalCoin`. When they successfully mine new blocks, a new `CrystalCoin` is created and rewarded to the person who mined the block. 
 
-Finally we created a unique identifier for the node using the built-in `UUID.random.to_s`.
-
-Ok so far so good. Now we can proceed with implementing each of the endpoints. Let's start with implementing `/transactions/new` end-point:
-
-```ruby
-this_nodes_transactions = [] of Hash(String, Int64 | String)
-
-# Creates a new transaction to go into the next mined Block
-post "/transactions/new" do |env|
-  transaction = {
-    "from"   => env.params.json["from"].as(String),
-    "to"     => env.params.json["to"].as(String),
-    "amount" => env.params.json["amount"].as(Int64)
-  }
-
-  this_nodes_transactions << transaction
-
-  "Transaction #{transaction} has been added to the node transactions"
-end
-
-```
-
-Now we have a way to keep a record of users when they send CrystalCoint to each other. This is why people refer to blockchains as public, distributed ledgers: all transactions are stored for all to see and are stored on every node in the network.
-
-I'm sure at this stage, you are asking yourself: where do people get CrystalCoins from? Nowhere, yet. There’s no such thing as a CrystalCoin yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of CrystalCoin. When they successfully mine new blocks, a new CrystalCoin is created and rewarded to the person who mined the block. The coin then gets circulated once the miner sends the SnakeCoin to another person.
+At the moment, the transactions are initially stored in a pool of `uncommitted_transactions`. The process of putting the unconfirmed transactions in a block and computing Proof of Work is known as the mining of blocks. Once the nonce satisfying our constraints is figured out, we can say that a block has been mined, and the block is put into the blockchain.
 
 In CrystalCoin, we’ll use the simple Proof-of-Work algorithm we created earlier. To create a new block, a miner’s computer will have to find the the proof number of the last block, then a new CrystalCoin block will be mined and the miner will be given a brand new CrystalCoin.
 
