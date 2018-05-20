@@ -815,9 +815,9 @@ end
 
 Now with this implementation we might face a problem with multiple nodes. The copy of chains of a few nodes can differ. In that case, we need to agree upon some version of the chain to maintain the integrity of the entire system. We need to achieve consensus.
 
-To resolve this, we’ll make the rule that the longest valid chain is authoritative. In other words, the longest chain on the network is the de-facto one. Using this algorithm, we reach Consensus amongst the nodes in our network.
+To resolve this, we’ll make the rule that the longest valid chain is authoritative. In other words, the longest chain on the network is the one to be used. Using this algorithm, we reach consensus amongst the nodes in our network.
 
-Let's implement `Blockchain#valid_chain?` and `Blockchain#resolve_conflicts`. 
+Let's implement `Blockchain#valid_chain?` and `Blockchain#resolve_conflicts` first before creating `/nodes/resolve` end-point:
 
 ```diff
 --- a/src/crystal_coin/block.cr
@@ -871,7 +871,7 @@ index 634d8b0..5e8ed0c 100644
 
 For `Blockchain#valid_chain?` we iterate through all of the blocks, and for each we recalculate the hash for each of the blocks to make sure it's the right one. Then we check each of the blocks linked correctly with their previous hashes.
 
-Now for `Blockchain#resolve_conflicts`
+Now for `Blockchain#resolve`
 
 
 
@@ -885,4 +885,4 @@ And that’s it! We’ve made a fairly sized blockchain at this point. Now, `Cry
 
 
 ### References
-- 
+- replace `diff` with `ruby`

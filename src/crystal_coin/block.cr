@@ -5,6 +5,15 @@ module CrystalCoin
   class Block
     include ProofOfWork
 
+    JSON.mapping(
+      index: Int32,
+      current_hash: String,
+      nonce: Int32,
+      previous_hash: String,
+      transactions: Array(Transaction),
+      timestamp: Time
+    )
+
     property current_hash : String
     property index : Int32
     property nonce : Int32
