@@ -15,12 +15,12 @@ module CrystalCoin
     def resolve
       @nodes.each do |node|
         node_chain = parse_chain(node)
-        return unless node_chain.size > chain.size
+        return unless node_chain.size > @chain.size
         return unless valid_chain?(node_chain)
         @chain = node_chain
         p "Succefully updated the chain"
-        rescue IO::Timeout
-          puts "Timeout!"
+      rescue IO::Timeout
+        puts "Timeout!"
       end
     end
 
