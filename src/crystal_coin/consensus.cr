@@ -15,11 +15,10 @@ module CrystalCoin
     def resolve
       @nodes.each do |node|
         node_chain = parse_chain(node)
-        p node_chain
-        p node_chain.first
-        p "after"
-        p node_chain.first.recalculate_hash
-        p node_chain.first
+        return unless node_chain.size > chain.size
+        return unless valid_chain?(node_chain)
+        @chain = node_chain
+        p "Succefully updated the chain"
         rescue IO::Timeout
           puts "Timeout!"
       end
@@ -33,10 +32,10 @@ module CrystalCoin
       node_chain = Array(CrystalCoin::Block).from_json(node_chain)
     end
 
-    private def valid_chain?
+    private def valid_chain?(node_chain)
       previous_hash = "0"
 
-      @chain.each do |block|
+      node_chain.each do |block|
         current_block_hash = block.current_hash
         block.recalculate_hash
 

@@ -883,6 +883,8 @@ And that’s it! We’ve made a fairly sized blockchain at this point. Now, `Cry
 
 > Note: The source code is available [here](https://github.com/eqbal/crystal_coin) on Github.
 
+> Code in this tutorial is not ready for real use. Please refer to this as a general guide only.
+
 
 ### References
 - replace `diff` with `ruby`
