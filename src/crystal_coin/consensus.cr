@@ -13,23 +13,27 @@ module CrystalCoin
     end
 
     def resolve
+      updated = false
+
       @nodes.each do |node|
         node_chain = parse_chain(node)
         return unless node_chain.size > @chain.size
         return unless valid_chain?(node_chain)
         @chain = node_chain
-        p "Succefully updated the chain"
+        updated = true
       rescue IO::Timeout
         puts "Timeout!"
       end
+
+      updated
     end
 
     private def parse_chain(node : String)
       node_url = URI.parse("#{node}/chain")
       node_chain = HTTP::Client.get(node_url)
-
       node_chain = JSON.parse(node_chain.body)["chain"].to_json
-      node_chain = Array(CrystalCoin::Block).from_json(node_chain)
+
+      Array(CrystalCoin::Block).from_json(node_chain)
     end
 
     private def valid_chain?(node_chain)
@@ -41,6 +45,7 @@ module CrystalCoin
 
         return false if current_block_hash != block.current_hash
         return false if previous_hash != block.previous_hash
+        return false if current_block_hash[0..1] != "00"
         previous_hash = block.current_hash
       end
 

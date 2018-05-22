@@ -1,4 +1,4 @@
-# Build a Blockchain from scratch using Crystal
+# Build a Blockchain from scratch using Crystal Language
 
 
 This post is my attempt to understanding the key aspects of the blockchain by exploring the internals. I started by reading the [original paper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand blockchain is by building a new coin from scratch. So that's why I decided to create `CrystalCoin`. We will simplify most of the things like complexity, algorithm choices etc.
@@ -887,4 +887,6 @@ And that’s it! We’ve made a fairly sized blockchain at this point. Now, `Cry
 
 
 ### References
-- replace `diff` with `ruby`
+- Replace `diff` with `ruby`
+- Add screenshots of tumux and curl to test it out
+- Discuss magical `JSON.mapping(`

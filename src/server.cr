@@ -50,7 +50,11 @@ post "/nodes/register" do |env|
 end
 
 get "/nodes/resolve" do
-  blockchain.resolve
+  if blockchain.resolve
+    "Succefully updated the chain"
+  else
+    "Current chan is up-to-dated"
+  end
 end
 
 Kemal.run
