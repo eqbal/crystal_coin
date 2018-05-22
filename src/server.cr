@@ -21,7 +21,7 @@ get "/mine" do
   "Block with index=#{blockchain.chain.last.index} is mined."
 end
 
-get "/pending" do
+get "/pendings" do
   { transactions: blockchain.uncommitted_transactions }.to_json
 end
 

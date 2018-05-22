@@ -678,7 +678,7 @@ crystal_coin [master] % crystal run src/server.cr
 [development] Kemal is ready to lead at http://0.0.0.0:3000
 ```
 
-Let’s first create two new transactions by making a `POST` requests to `http://localhost:3000/transactions/new` with a body containing our transaction structure:
+Then let's create two new transactions by making a `POST` requests to `http://localhost:3000/transactions/new` with a body containing our transaction structure:
 
 ```bash
 crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"iron_man", "amount": 1000}'
@@ -690,64 +690,82 @@ Now let's list the pending transactions (transactions that has not been added to
 
 ```bash
 crystal_coin [master●] % curl http://0.0.0.0:3000/pendings
-[
-  #<CrystalCoin::Block::Transaction:0x10c4159f0
-    @from="eki",
-    @to="iron_man",
-    @amount=1000_i64>, 
-  #<CrystalCoin::Block::Transaction:0x10c415810
-    @from="eki",
-    @to="hulk",
-    @amount=700_i64>
-]
+{
+  "transactions":[
+    {
+      "from":"ekis",
+      "to":"huslks",
+      "amount":7090
+    },
+    {
+      "from":"ekis",
+      "to":"huslks",
+      "amount":70900
+    }
+  ]
+}
 ```
 
 So far so good, we can see, the two transactions we created earlier have been added to the `uncommitted_transactions`.
 
-Now let's mine the two transactions by making a `GET` request to `http://0.0.0.0:3000/mine`:
+Now let's _mine_ the two transactions by making a `GET` request to `http://0.0.0.0:3000/mine`:
 
 ```bash
 crystal_coin [master●] % curl http://0.0.0.0:3000/mine
-Block with index=1 is mined.%
+Block with index=1 is mined.
 ```
 
 Nice, sounds we successfully mined the first block and added it to our `chain`. Let's double check our `chain` and if it includes the mined block:
 
 ```bash
 crystal_coin [master●] % curl http://0.0.0.0:3000/chain
-[
-  #<CrystalCoin::Block:0x10c4139c0
-    @current_hash="0071c44d429b3363bb454ce9a214396b9532b6f1ea337ce8fe480ec0d134bb2f",
-    @index=0,
-    @nonce=320,
-    @transactions=[],
-    @timestamp=2018-05-19 12:29:53 +03:00,
-    @previous_hash="0">,
-  #<CrystalCoin::Block:0x10d4631c0
-    @current_hash="006b3ea356e0b1485d3c1b6b34cb00b7387082819bb0f3247aed2ae107fc6f7c",
-    @index=1,
-    @nonce=971,
-    @transactions=[
-      #<CrystalCoin::Block::Transaction:0x10c4159f0 @from="eki", @to="iron_man", @amount=1000_i64>,
-      #<CrystalCoin::Block::Transaction:0x10c415810 @from="eki", @to="hulk", @amount=700_i64>
-    ],
-    @timestamp=2018-05-19 12:33:06 +03:00,
-    @previous_hash="0071c44d429b3363bb454ce9a214396b9532b6f1ea337ce8fe480ec0d134bb2f">
-]
+{
+  "chain": [
+    {
+      "index": 0,
+      "current_hash": "00d469d383005b4303cfa7321c02478ce76182564af5d16e1a10d87e31e2cb30",
+      "nonce": 363,
+      "previous_hash": "0",
+      "transactions": [
+        
+      ],
+      "timestamp": "2018-05-23T01:59:52+0300"
+    },
+    {
+      "index": 1,
+      "current_hash": "003c05da32d3672670ba1e25ecb067b5bc407e1d5f8733b5e33d1039de1a9bf1",
+      "nonce": 320,
+      "previous_hash": "00d469d383005b4303cfa7321c02478ce76182564af5d16e1a10d87e31e2cb30",
+      "transactions": [
+        {
+          "from": "ekis",
+          "to": "huslks",
+          "amount": 7090
+        },
+        {
+          "from": "ekis",
+          "to": "huslks",
+          "amount": 70900
+        }
+      ],
+      "timestamp": "2018-05-23T02:02:38+0300"
+    }
+  ]
+}
 ```
 
 ### Consensus and decentralization
 
-This is very cool. We’ve got a basic Blockchain that accepts transactions and allows us to mine new Blocks. But the whole point of Blockchains is that they should be decentralized. And if they’re decentralized, how on earth do we ensure that they all reflect the same chain? This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network.
+This is very cool. We’ve got a basic blockchain that accepts transactions and allows us to mine new blocks. But the code that we've implemented till now is meant to run on a single computer, while the whole point of Blockchains is that they should be decentralized. And if they’re decentralized, how we ensure that they all reflect the same chain? This is called the problem of `Consensus`.
 
-The code that we've implemented till now is meant to run on a single computer. Even though we're linking block with hashes, we still can't trust a single entity. This is called the problem of Consensus, and we’ll have to implement a Consensus Algorithm if we want more than one node in our network. We need multiple nodes to maintain our blockchain.
+We’ll have to implement a Consensus Algorithm if we want more than one node in our network.
 
 #### Registering new Nodes
 
 To implement a Consensus Algorithm, we need a way to let a node know about neighbouring nodes on the network. Each node on our network should keep a registry of other nodes on the network. Thus, we’ll need some more endpoints:
 
-- `POST: /nodes/register`: to accept a list of new nodes in the form of URLs.
-- `GET: /nodes/resolve`: to implement our Consensus Algorithm, which resolves any conflicts—to ensure a node has the correct chain.
+- [POST] `/nodes/register`: to accept a list of new nodes in the form of URLs.
+- [GET]: `/nodes/resolve`: to implement our Consensus Algorithm, which resolves any conflicts—to ensure a node has the correct chain.
 
 We’ll need to modify our `Blockchain`’s constructor and provide a method for registering nodes:
 
@@ -769,7 +787,7 @@ We’ll need to modify our `Blockchain`’s constructor and provide a method for
      def add_transaction(transaction)
 ```
 
-Note that we’ve used a set(String) to hold the list of nodes. This is a cheap way of ensuring that the addition of new nodes is idempotent, and that no matter how many times we add a specific node, it appears exactly once.
+Note that we’ve used a `Set` data structure with `String` type to hold the list of nodes. This is a cheap way of ensuring that the addition of new nodes is idempotent, and that no matter how many times we add a specific node, it appears exactly once.
 
 Now let's add a new module to `Consensus` and implement the first method `register_node(address)`:
 
@@ -790,6 +808,8 @@ module CrystalCoin
 end
 ```
 
+The `register_node` function, will parse the URL of the node and format it.
+
 And here let's create `/nodes/register` end-point:
 
 ```ruby
@@ -808,59 +828,60 @@ end
 
 Now with this implementation we might face a problem with multiple nodes. The copy of chains of a few nodes can differ. In that case, we need to agree upon some version of the chain to maintain the integrity of the entire system. We need to achieve consensus.
 
-To resolve this, we’ll make the rule that the longest valid chain is authoritative. In other words, the longest chain on the network is the one to be used. Using this algorithm, we reach consensus amongst the nodes in our network.
+To resolve this, we’ll make the rule that the longest valid chain is the one to be used. Using this algorithm, we reach consensus amongst the nodes in our network.
 
-Let's implement `Blockchain#valid_chain?` and `Blockchain#resolve_conflicts` first before creating `/nodes/resolve` end-point:
+Let's implement `Blockchain#resolve` before creating `/nodes/resolve` end-point:
 
-```diff
---- a/src/crystal_coin/block.cr
-+++ b/src/crystal_coin/block.cr
-@@ -8,6 +8,7 @@ module CrystalCoin
-     property current_hash : String
-     property index : Int32
-     property nonce : Int32
-+    property previous_hash : String
+```ruby
+module CrystalCoin
+  module Consensus
+    ...
+    
+    def resolve
+      updated = false
 
-     def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
-       @transactions = transactions
-@@ -29,6 +30,11 @@ module CrystalCoin
-         previous_hash: previous_block.current_hash
-       )
-     end
-+
-+    def recalculate_hash
-+      @nonce = proof_of_work
-+      @current_hash = calc_hash_with_nonce(@nonce)
-+    end
-   end
- end
+      @nodes.each do |node|
+        node_chain = parse_chain(node)
+        return unless node_chain.size > @chain.size
+        return unless valid_chain?(node_chain)
+        @chain = node_chain
+        updated = true
+      rescue IO::Timeout
+        puts "Timeout!"
+      end
 
-diff --git a/src/crystal_coin/consensus.cr b/src/crystal_coin/consensus.cr
-index 634d8b0..5e8ed0c 100644
---- a/src/crystal_coin/consensus.cr
-+++ b/src/crystal_coin/consensus.cr
-@@ -10,5 +10,20 @@ module CrystalCoin
-     rescue
-       raise "Invalid URL"
-     end
-+
-+    def valid_chain?
-+      previous_hash = "0"
-+
-+      @chain.each do |block|
-+        current_block_hash = block.current_hash
-+        block.recalculate_hash
-+
-+        return false if current_block_hash != block.current_hash
-+        return false if previous_hash != block.previous_hash
-+        previous_hash = block.current_hash
-+      end
-+
-+      return true
-+    end
-   end
- en
+      updated
+    end
+    
+    private def parse_chain(node : String)
+      node_url = URI.parse("#{node}/chain")
+      node_chain = HTTP::Client.get(node_url)
+      node_chain = JSON.parse(node_chain.body)["chain"].to_json
+
+      Array(CrystalCoin::Block).from_json(node_chain)
+    end
+
+    private def valid_chain?(node_chain)
+      previous_hash = "0"
+
+      node_chain.each do |block|
+        current_block_hash = block.current_hash
+        block.recalculate_hash
+
+        return false if current_block_hash != block.current_hash
+        return false if previous_hash != block.previous_hash
+        return false if current_block_hash[0..1] != "00"
+        previous_hash = block.current_hash
+      end
+
+      return true
+    end
+  end
+end
+
 ```
+
+To extract `CrystalCoin::Block` objects from the JSON blob that was returned in `/chain` end-point, we can use Crystal's super-handy `JSON.mapping` functionality. 
 
 For `Blockchain#valid_chain?` we iterate through all of the blocks, and for each we recalculate the hash for each of the blocks to make sure it's the right one. Then we check each of the blocks linked correctly with their previous hashes.
 
@@ -872,16 +893,31 @@ Now for `Blockchain#resolve`
 
 This tutorial covered the fundamentals of a public blockchain. If you followed along, you implemented a blockchain from scratch and built a simple application allowing users to share information on the blockchain.
 
-And that’s it! We’ve made a fairly sized blockchain at this point. Now, `CrystalCoin` can be launched on multiple machines to create a network, and real `CrystalCoins` can be mined.
+We’ve made a fairly sized blockchain at this point. Now, `CrystalCoin` can be launched on multiple machines to create a network, and real `CrystalCoins` can be mined.
 
-> Note: The source code is available [here](https://github.com/eqbal/crystal_coin) on Github.
+> Note: code in this tutorial is not ready for real use. Please refer to this as a general guide only.
 
-> Code in this tutorial is not ready for real use. Please refer to this as a general guide only.
-
+The source code for this post is available [here](https://github.com/eqbal/crystal_coin) on Github.
 
 ### References
 - Replace `diff` with `ruby`
 - Add screenshots of tumux and curl to test it out
 - Discuss magical `JSON.mapping(`
 - Add diagram to show objects used and their methods at the engining of `designing our blockchain`
-- Include the overall structure at the end of the article by running `tree`
+- Include the overall structure at the end of the article 
+
+### Structure 
+
+```
+crystal_coin [master●] % tree src/
+src/
+├── crystal_coin
+│   ├── block.cr
+│   ├── blockchain.cr
+│   ├── consensus.cr
+│   ├── proof_of_work.cr
+│   ├── transaction.cr
+│   └── version.cr
+├── crystal_coin.cr
+└── server.cr
+```
