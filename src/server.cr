@@ -22,7 +22,7 @@ get "/mine" do
 end
 
 get "/pending" do
-  "#{blockchain.uncommitted_transactions}"
+  { transactions: blockchain.uncommitted_transactions }.to_json
 end
 
 post "/transactions/new" do |env|
@@ -34,7 +34,7 @@ post "/transactions/new" do |env|
 
   blockchain.add_transaction(transaction)
 
-  "Transaction #{transaction.inspect} has been added to the node"
+  "Transaction #{transaction} has been added to the node"
 end
 
 post "/nodes/register" do |env|

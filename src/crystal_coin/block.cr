@@ -46,4 +46,3 @@ module CrystalCoin
     end
   end
 end
-
