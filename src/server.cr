@@ -53,7 +53,7 @@ get "/nodes/resolve" do
   if blockchain.resolve
     "Succefully updated the chain"
   else
-    "Current chan is up-to-dated"
+    "Current chain is up-to-dated"
   end
 end
 

@@ -828,9 +828,8 @@ end
 
 Now with this implementation we might face a problem with multiple nodes. The copy of chains of a few nodes can differ. In that case, we need to agree upon some version of the chain to maintain the integrity of the entire system. We need to achieve consensus.
 
-To resolve this, we’ll make the rule that the longest valid chain is the one to be used. Using this algorithm, we reach consensus amongst the nodes in our network.
+To resolve this, we’ll make the rule that the longest valid chain is the one to be used. Using this algorithm, we reach consensus amongst the nodes in our network. The reason behind this approach is that the longest chain is a good estimate of the most amount of work done:
 
-Let's implement `Blockchain#resolve` before creating `/nodes/resolve` end-point:
 
 ```ruby
 module CrystalCoin
@@ -852,6 +851,21 @@ module CrystalCoin
 
       updated
     end
+    
+	...
+  end
+end
+
+```
+
+`resolve` is a method which loops through all our neighbouring nodes, downloads their chains and verifies them using the `valid_chain?` method. If a valid chain is found, whose length is greater than ours, we replace ours.
+
+Now let's implement `parse_chain()` and `valid_chain?()` private methods:
+
+```ruby
+module CrystalCoin
+  module Consensus
+    ...
     
     private def parse_chain(node : String)
       node_url = URI.parse("#{node}/chain")
@@ -878,15 +892,82 @@ module CrystalCoin
     end
   end
 end
+```
+
+For `parse_chain()` we: 
+
+- Issue a `GET` HTTP request using `HTTP::Client.get` to `/chain` end-point.
+- Parse the `/chain` JSON response using `JSON.parse`.
+- Extract an array of `CrystalCoin::Block` objects from the JSON blob that was returned using `Array(CrystalCoin::Block).from_json(node_chain)`. We used Crystal's super-handy `JSON.mapping` functionality that allowed us to use `ObjectType.from_json(json_response)`. In our case we had to define `JSON.mapping` in `CrystalCoin::Block` object something like:
+
+```ruby
+module CrystalCoin
+  class Block
+   
+    JSON.mapping(
+      index: Int32,
+      current_hash: String,
+      nonce: Int32,
+      previous_hash: String,
+      transactions: Array(Transaction),
+      timestamp: Time
+    )
+    
+    ...
+  end
+end
+```
+
+Now for `Blockchain#valid_chain?`, we iterate through all of the blocks, and for each we:
+
+- Recalculate the hash for the block using `Block#recalculate_hash` and check that the hash of the block is correct:
+
+```ruby
+module CrystalCoin
+  class Block
+    ...
+    
+    def recalculate_hash
+      @nonce = proof_of_work
+      @current_hash = calc_hash_with_nonce(@nonce)
+    end
+  end
+end
+	
+``` 
+
+- Check each of the blocks linked correctly with their previous hashes.
+
+- Check the block's hash is valid for the number of zeros (`difficulty` in our case `00`).
+
+And finally we implement `/nodes/resolve` end-point:
+
+```ruby
+get "/nodes/resolve" do
+  if blockchain.resolve
+    "Succefully updated the chain"
+  else
+    "Current chain is up-to-dated"
+  end
+end
 
 ```
 
-To extract `CrystalCoin::Block` objects from the JSON blob that was returned in `/chain` end-point, we can use Crystal's super-handy `JSON.mapping` functionality. 
+The structure of our project should look like this:
 
-For `Blockchain#valid_chain?` we iterate through all of the blocks, and for each we recalculate the hash for each of the blocks to make sure it's the right one. Then we check each of the blocks linked correctly with their previous hashes.
-
-Now for `Blockchain#resolve`
-
+```
+crystal_coin [master●] % tree src/
+src/
+├── crystal_coin
+│   ├── block.cr
+│   ├── blockchain.cr
+│   ├── consensus.cr
+│   ├── proof_of_work.cr
+│   ├── transaction.cr
+│   └── version.cr
+├── crystal_coin.cr
+└── server.cr
+```
 
 
 ### Conclusion 
