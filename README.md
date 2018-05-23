@@ -953,6 +953,8 @@ end
 
 ```
 
+It's done! You can find the [final code](https://github.com/eqbal/crystal_coin) on GitHub.
+
 The structure of our project should look like this:
 
 ```
@@ -969,6 +971,60 @@ src/
 └── server.cr
 ```
 
+### Let's try it out
+
+- Grab a different machine, and run different nodes on your network. Or spin up processes using different ports on the same machine. In my case, I created two nodes on my machine, on a different port to have two nodes: `http://localhost:3000` and `http://localhost:3001`.
+
+- Register the second node address to the first node using:
+
+```
+crystal_coin [master●●] % curl -X POST http://0.0.0.0:3000/nodes/register -H "Content-Type: application/json" -d '{"nodes": ["http://0.0.0.0:3001"]}'
+New nodes have been added: Set{"http://0.0.0.0:3001"}%
+```
+
+- Let's add a transaction to the second node:
+
+```
+crystal_coin [master●●] % curl -X POST http://0.0.0.0:3001/transactions/new -H "Content-Type: application/json" -d '{"from": "eqbal", "to":"spiderman", "amount": 100}'
+Transaction #<CrystalCoin::Block::Transaction:0x1039c29c0> has been added to the node%
+```
+
+- Let's mine transactions into a block at the second node:
+
+```
+crystal_coin [master●●] % curl http://0.0.0.0:3001/mine
+Block with index=1 is mined.%
+```
+
+- At this point, the first node has only one block (genesis block), and the second node has two nodes (genesis and the mined block):
+
+```
+crystal_coin [master●●] % curl http://0.0.0.0:3000/chain
+{"chain":[{"index":0,"current_hash":"00fe9b1014901e3a00f6d8adc6e9d9c1df03344dda84adaeddc8a1c2287fb062","nonce":157,"previous_hash":"0","transactions":[],"timestamp":"2018-05-24T00:21:45+0300"}]}%
+```
+
+```
+crystal_coin [master●●] % curl http://0.0.0.0:3001/chain
+{"chain":[{"index":0,"current_hash":"007635d82950bc4b994a91f8b0b20afb73a3939e660097c9ea8416ad614faf8e","nonce":147,"previous_hash":"0","transactions":[],"timestamp":"2018-05-24T00:21:38+0300"},{"index":1,"current_hash":"00441a4d9a4dfbab0b07acd4c7639e53686944953fa3a6c64d2333a008627f7d","nonce":92,"previous_hash":"007635d82950bc4b994a91f8b0b20afb73a3939e660097c9ea8416ad614faf8e","transactions":[{"from":"eqbal","to":"spiderman","amount":100}],"timestamp":"2018-05-24T00:23:57+0300"}]}%
+```
+
+- Our goal is to update the chain in the first node to include the newly generated block at the second one. So let's resolve the first node:
+
+```
+crystal_coin [master●●] % curl http://0.0.0.0:3000/nodes/resolve
+Succefully updated the chain%
+```
+
+Let's check if the chain in the first node has updated:
+
+```
+crystal_coin [master●●] % curl http://0.0.0.0:3000/chain
+{"chain":[{"index":0,"current_hash":"007635d82950bc4b994a91f8b0b20afb73a3939e660097c9ea8416ad614faf8e","nonce":147,"previous_hash":"0","transactions":[],"timestamp":"2018-05-24T00:21:38+0300"},{"index":1,"current_hash":"00441a4d9a4dfbab0b07acd4c7639e53686944953fa3a6c64d2333a008627f7d","nonce":92,"previous_hash":"007635d82950bc4b994a91f8b0b20afb73a3939e660097c9ea8416ad614faf8e","transactions":[{"from":"eqbal","to":"spiderman","amount":100}],"timestamp":"2018-05-24T00:23:57+0300"}]}%
+```
+
+![test_crystal_coin](assets/test_crystal_coin.png)
+
+Hooray, works like a charm.
 
 ### Conclusion 
 
@@ -976,29 +1032,6 @@ This tutorial covered the fundamentals of a public blockchain. If you followed a
 
 We’ve made a fairly sized blockchain at this point. Now, `CrystalCoin` can be launched on multiple machines to create a network, and real `CrystalCoins` can be mined.
 
+I hope that this has inspired you to create something new. 
+
 > Note: code in this tutorial is not ready for real use. Please refer to this as a general guide only.
-
-The source code for this post is available [here](https://github.com/eqbal/crystal_coin) on Github.
-
-### References
-- Replace `diff` with `ruby`
-- Add screenshots of tumux and curl to test it out
-- Discuss magical `JSON.mapping(`
-- Add diagram to show objects used and their methods at the engining of `designing our blockchain`
-- Include the overall structure at the end of the article 
-
-### Structure 
-
-```
-crystal_coin [master●] % tree src/
-src/
-├── crystal_coin
-│   ├── block.cr
-│   ├── blockchain.cr
-│   ├── consensus.cr
-│   ├── proof_of_work.cr
-│   ├── transaction.cr
-│   └── version.cr
-├── crystal_coin.cr
-└── server.cr
-```
