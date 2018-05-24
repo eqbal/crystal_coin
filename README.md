@@ -1,40 +1,37 @@
-# Build a Blockchain from scratch using Crystal Language
+# Creating a CryptoCoin using The Crystal Programming Language
 
 
-This post is my attempt to understanding the key aspects of the blockchain by exploring the internals. I started by reading the [original paper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand blockchain is by building a new coin from scratch. So that's why I decided to create `CrystalCoin`. We will simplify most of the things like complexity, algorithm choices etc.
+This post is my attempt to understand the key aspects of the blockchain by exploring the internals. I started by reading the [original paper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand blockchain is by building a new CryptoCoin from scratch. So that's why I decided to create `CrystalCoin`. We will simplify most of the things like complexity, algorithm choices etc. Focusing on the details of a concrete example will provide a deeper understanding of the strengths and limitations of blockchains.
 
-Focusing on the details of a concrete example will provide a deeper understanding of the strengths and limitations of blockchains.
+For a better demonstration, I want to use a productive language like [Ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (_mining_ and _hashing_) and that's why a compiled languages (e.g.: `C++`/`JAVA`) are the languages of choice to build real crptocoins. That being said I want to use a language with a cleaner syntax so I can keep the development fun and allow better readability.
 
-I'll assume you have a basic understanding of Object Oriented Programming.
-
-For a better demonstration, I wanted to use a productive language like [Ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (_mining_ and _hashing_) and that's why a compiled languages (like C++ and JAVA) are the languages of choice to build real crptocoins. That being said I want to use a language with a cleaner syntax so I can keep the development fun and allow better demonstration for the ideas.
-
-So, what I want to use? [Crystal](https://crystal-lang.org/) language. Crystal’s syntax is heavily inspired by Ruby’s, so it feels natural to read and easy to write, and has the added benefit of a lower learning curve, specially for experienced Ruby developers. Their slogan is:
+So, what I want to use? [Crystal](https://crystal-lang.org/) language. Crystal’s syntax is heavily inspired by Ruby’s, so it feels natural to read and easy to write, and has the added benefit of a lower learning curve, specially for experienced Ruby developers. As they mentioned at their official website:
 
 > Fast as C, slick as Ruby
 
-Unlike [Ruby](https://www.ruby-lang.org/en/) or JavaScript, which are interpreted languages, Crystal is a compiled language, making it much faster and with a lower memory footprint. Under the hood, it uses [LLVM](https://llvm.org/) for compiling to native code.
+Unlike Ruby or JavaScript, which are interpreted languages, Crystal is a compiled language, making it much faster and with a lower memory footprint. Under the hood, it uses [LLVM](https://llvm.org/) for compiling to native code.
 
-Crystal is also statically typed, which means that the compiler will help you catch type errors in compile-time. But more on this later.	
+Crystal is also statically typed, which means that the compiler will help you catch type errors in compile-time.
 
-Not gonna talk more of why Crystal is a cool programming language to learn as it's out of the scoop of this article, but please feel free check out [this](https://medium.com/@DuroSoft/why-crystal-is-the-most-promising-programming-language-of-2018-aad669d8344f) article if you are still not convinced.
+I'm not gonna talk more about Crystal and why it's awesome as it's out of the scoop of this article, but if you are still not convinced, feel free to check out [this](https://medium.com/@DuroSoft/why-crystal-is-the-most-promising-programming-language-of-2018-aad669d8344f) article.
 
+> I'll assume you have a basic understanding of Object Oriented Programming (OOP).
 
 ### Blockchain
 
 So, what is a blockchain? It’s a list (chain) of blocks linked and secured by digital fingerprints (also known as crypto hashes).
 
-The easiest way to think of it as a linked list. That being said, it's important to understand it's **not** a linked list. A linked list only required to have a reference to the previous element, a block must have an identifier depending on the previous block’s identifier, meaning that you cannot replace a block without recomputing every single block that comes after. 
+The easiest way to think of it as a linked list data structure. That being said a linked list only required to have a reference to the previous element, a block must have an identifier depending on the previous block’s identifier, meaning that you cannot replace a block without recomputing every single block that comes after.
 
 For now think of blockchain as a series of blocks with some data, linked with a chain, the chain being the hash of the previous block.
 
 The entire blockchain would exist on each one of the node that wants to interact with it, meaning it is copied on each one of the nodes in the network. So, no single server hosts it, which makes it _decentralized_.
 
-Yes this is weird compared to the conventional centralized systems. Each of the nodes will have a copy of the entire blockchain (> 200 Gb in Bitcoin blockchain).
+Yes this is weird compared to the conventional centralized systems. Each of the nodes will have a copy of the entire blockchain (> 149 Gb in Bitcoin blockchain by [December 2017](https://www.statista.com/statistics/647523/worldwide-bitcoin-blockchain-size/)).
 
-### Hashing and encryption
+### Hashing & Digital Signature
 
-So, what is this hash function? Think of the hash as a function, that when we give it a text/object it would return a unique fingerprint. Even the smallest change in the input object would change the finger print.
+So, what is this hash function? Think of the hash as a function, that when we give it a text/object it would return a unique fingerprint. Even the smallest change in the input object would change the finger print dramatically.
 
 There are different hashing algorithms, in this article we'll be using `SHA256` hash algorithm, which is the one used in `Bitcoin`.
 
@@ -44,13 +41,15 @@ Using `SHA256` we'll always resulting a 64 hexadecimal chars (256 bit) in length
 
 | Input                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Hashed Results                                                   |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEX VERY LONG TEXT VERY LONG  VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT | cf49bbb21c8b7c078165919d7e57c145ccb7f398e7b58d9a3729de368d86294a |
+| VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEX VERY LONG TEXT VERY LONG  VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT VERY LONG TEXT | cf49bbb21c8b7c078165919d7e57c145ccb7f398e7b58d9a3729de368d86294a |
 | Toptal                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 2e4e500e20f1358224c08c7fb7d3e0e9a5e4ab7a013bfd6774dfa54d7684dd21 |
 | Toptal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 12075307ce09a6859601ce9d451d385053be80238ea127c5df6e6611eed7c6f0 |
 
 Note with the last example, that just adding a `.` (dot) resulted a dramatical changes in the hash.
 
 Therefore, in a blockchain, the chain is built by passing the block data into a hashing algorithm that would generate a hash, which is linked to the next block, henceforth, forming a series of blocks linked with the hashes of the previous blocks.
+
+#### Building CrystalCoin project
 
 Now let's start creating our Crystal project and build our `SHA256` encryption.
 
@@ -84,9 +83,9 @@ dependencies:
     github: datanoise/openssl.cr
 ```
 
-Once that's in, head back into your terminal and run `crystal deps`. Doing this will pull down openssl and its dependencies for us to utilise
+Once that's in, head back into your terminal and run `crystal deps`. Doing this will pull down `openssl` and its dependencies for us to utilise
 
-Now we have the required library installed in our code, let's start by defining the block class and then building the hash function.
+Now we have the required library installed in our code, let's start by defining `Block` class and then building the hash function.
 
 ```ruby
 # src/crystal_coin/block.cr
@@ -120,7 +119,7 @@ crystal_coin [master●] % crystal src/crystal_coin/block.cr
 
 ### Design our Blockchain
 
-We’ll start by first defining what our blocks will look like. Each block is stored with a `timestamp` and, optionally, an `index`. In `CrystalCoin`, we’re going to store both. And to help ensure integrity throughout the blockchain, each block will have a self identifying _hash_. Like Bitcoin, each block’s hash will be a cryptographic hash of the block’s (`index`, `timestamp`, `data`, and the hash of the previous block’s hash `previous_hash`). The data can be anything you want for now. 
+Each block is stored with a `timestamp` and, optionally, an `index`. In `CrystalCoin`, we’re going to store both. And to help ensure integrity throughout the blockchain, each block will have a self identifying _hash_. Like Bitcoin, each block’s hash will be a cryptographic hash of the block’s (`index`, `timestamp`, `data`, and the hash of the previous block’s hash `previous_hash`). The data can be anything you want for now. 
 
 ```ruby
 module CrystalCoin
@@ -188,13 +187,13 @@ module CrystalCoin
 end
 ```
 
-And let's test it out using `puts CrystalCoin::Block.first.inspect`:
+And let's test it out using `p CrystalCoin::Block.first`:
 
 ```
 #<CrystalCoin::Block:0x10b33ac80 @current_hash="acb701a9b70cff5a0617d654e6b8a7155a8c712910d34df692db92455964d54e", @data="Genesis Block", @index=0, @timestamp=2018-05-13 17:54:02 +03:00, @previous_hash="0">
 ```
 
-Now that we’re able to create a genesis block, we need a function that will generate succeeding blocks in the blockchain.
+Now that we’re able to create a _genesis_ block, we need a function that will generate succeeding blocks in the blockchain.
 
 This function will take the previous block in the chain as a parameter, create the data for the block to be generated, and return the new block with its appropriate data. When new blocks hash information from previous blocks, the integrity of the blockchain increases with each new block.
 
@@ -430,7 +429,7 @@ In the first block tried 26762 nonces (compare 17 nonces with difficulty '00') u
 
 So far, so good. We created our simple blockchain and it was relatively easy to make. But the problem here is that `CrystalCoin` can only ran on one single machine (it's not distributed/decentralized).
 
-From now on we'll start using JSON data for `CrystalCoin`, the data will be transactions, so each block’s data field will be a list of some transactions.
+From now on we'll start using JSON data for `CrystalCoin`, the data will be transactions, so each block’s data field will be a list of transactions.
 
 Each transaction will be a JSON object detailing the `sender` of the coin, the `receiver` of the coin, and the `amount` of CrystalCoin that is being transferred:
 
@@ -526,10 +525,10 @@ We'll create four end-points:
 
 - [POST]`/transactions/new`: to create a new transaction to a block
 - [GET] `/mine`: to tell our server to mine a new block.
-- [GET] `/chain`: to return the full Blockchain in `JSON` format.
-- [GET] `/pending`: to return the pending transactions
+- [GET] `/chain`: to return the full blockchain in `JSON` format.
+- [GET] `/pending`: to return the pending transactions (`uncommitted_transactions`).
 
-We're going to use [Kermal](https://github.com/kemalcr/kemal) web framework. It’s a micro-framework and it makes it easy to map endpoints to Crystal functions. Kemal is heavily influenced by [Sinatra](http://sinatrarb.com/) for Rubyists, and works in a very similar way. If you are looking for [Ruby on Rails](https://rubyonrails.org/)) equivalent then check out [Amber](https://github.com/amberframework/amber). 
+We're going to use [Kermal](https://github.com/kemalcr/kemal) web framework. It’s a micro-framework and it makes it easy to map endpoints to Crystal functions. Kemal is heavily influenced by [Sinatra](http://sinatrarb.com/) for Rubyists, and works in a very similar way. If you are looking for [Ruby on Rails](https://rubyonrails.org/) equivalent then check out [Amber](https://github.com/amberframework/amber). 
 
 Our server will form a single node in our blockchain network. Let's first add `Kemal` to the `shard.yml` file as a and install the dependency:
 
@@ -611,17 +610,15 @@ end
 
 Straight forward implementation. We just create a `CrystalCoin::Block::Transaction` object and add the transaction to the `uncommitted_transactions` array using `Blockchain#add_transaction`.
 
-Now you must be asking yourself: where do people get `CrystalCoins` from? Nowhere, yet. There’s no such thing as a `CrystalCoin` yet, because not one coin has been created and issued yet. To create new coins, people have to _mine_ new blocks of `CrystalCoin`. 
-
-At the moment, the transactions are initially stored in a pool of `uncommitted_transactions`. The process of putting the unconfirmed transactions in a block and computing Proof of Work (PoW) is known as the _mining_ of blocks. Once the nonce satisfying our constraints is figured out, we can say that a block has been mined, and the block is put into the blockchain.
+At the moment, the transactions are initially stored in a pool of `uncommitted_transactions`. The process of putting the unconfirmed transactions in a block and computing Proof of Work (PoW) is known as the _mining_ of blocks. Once the `nonce` satisfying our constraints is figured out, we can say that a block has been mined, and the block is put into the blockchain.
 
 In `CrystalCoin`, we’ll use the simple Proof-of-Work algorithm we created earlier. To create a new block, a miner’s computer will have to:
 
-- Find the last block in the `chain`
-- Find uncommitted_transactions (`uncommitted_transactions`)
-- Create a new block using `Block.next`
-- Add the mined block to `chain` array
-- Clean up `uncommitted_transactions` array
+- Find the last block in the `chain`.
+- Find pending transactions (`uncommitted_transactions`).
+- Create a new block using `Block.next`.
+- Add the mined block to `chain` array.
+- Clean up `uncommitted_transactions` array.
 
 So to implement `/mine` end-point, let's first implement the above steps in `Blockchain#mine`:
 
@@ -648,7 +645,7 @@ module CrystalCoin
 end
 ```
 
-We make sure first we have some uncommitted transactions to mine. Then we get the last chain using `@chain.last`, and the first `25` transactions to be mined (we are using `Array#shift(BLOCK_SIZE)` to return an array of the first 25 `uncommitted_transactions`, and then remove the elements starting at index 0).
+We make sure first we have some pending transactions to mine. Then we get the last block using `@chain.last`, and the first `25` transactions to be mined (we are using `Array#shift(BLOCK_SIZE)` to return an array of the first 25 `uncommitted_transactions`, and then remove the elements starting at index 0).
 
 Now let's implement `/mine` end-point:
 
@@ -682,7 +679,8 @@ Then let's create two new transactions by making a `POST` requests to `http://lo
 
 ```bash
 crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"iron_man", "amount": 1000}'
-Transaction #<CrystalCoin::Block::Transaction:0x10c4159f0 @from="eki", @to="iron_man", @amount=1000_i64> has been added to the node%                                               crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"hulk", "amount": 700}'
+Transaction #<CrystalCoin::Block::Transaction:0x10c4159f0 @from="eki", @to="iron_man", @amount=1000_i64> has been added to the node%                                               
+crystal_coin [master●] % curl -X POST http://0.0.0.0:3000/transactions/new -H "Content-Type: application/json" -d '{"from": "eki", "to":"hulk", "amount": 700}'
 Transaction #<CrystalCoin::Block::Transaction:0x10c415810 @from="eki", @to="hulk", @amount=700_i64> has been added to the node%
 ```
 
