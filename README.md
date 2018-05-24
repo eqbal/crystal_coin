@@ -3,6 +3,9 @@
 
 This post is my attempt to understand the key aspects of the blockchain by exploring the internals. I started by reading the [original paper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand blockchain is by building a new CryptoCoin from scratch. So that's why I decided to create `CrystalCoin`. We will simplify most of the things like complexity, algorithm choices etc. Focusing on the details of a concrete example will provide a deeper understanding of the strengths and limitations of blockchains.
 
+> If you haven’t read it yet, I suggest you take a look at Demir Selmanvic's [article Cryptocurrency for Dummies: Bitcoin and Beyond]( 
+https://www.toptal.com/bitcoin/cryptocurrency-for-dummies-bitcoin-and-beyond) here on the Toptal Engineering Blog as an introduction for Cryptocurrency.
+
 For a better demonstration, I want to use a productive language like [Ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (_mining_ and _hashing_) and that's why a compiled languages (e.g.: `C++`/`JAVA`) are the languages of choice to build real crptocoins. That being said I want to use a language with a cleaner syntax so I can keep the development fun and allow better readability.
 
 So, what I want to use? [Crystal](https://crystal-lang.org/) language. Crystal’s syntax is heavily inspired by Ruby’s, so it feels natural to read and easy to write, and has the added benefit of a lower learning curve, specially for experienced Ruby developers. As they mentioned at their official website:
