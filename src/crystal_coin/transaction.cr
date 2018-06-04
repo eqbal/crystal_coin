@@ -1,3 +1,5 @@
+require "json"
+
 module CrystalCoin
   class Block
     class Transaction

@@ -229,33 +229,77 @@ module CrystalCoin
 end
 ```
 
-Let's try it out all together, we'll create a simple  blockchain. The first element of the list is the genesis block. And of course, we need to add the succeeding blocks. We'll create 10 new blocks to demonstrate `CrystalCoin`:
+Let's try it out all together, we'll create a simple  blockchain. The first element of the list is the genesis block. And of course, we need to add the succeeding blocks. We'll create five new blocks to demonstrate `CrystalCoin`:
 
 ```ruby
 blockchain = [ CrystalCoin::Block.first ]
 
 previous_block = blockchain[0]
 
-10.times do |i|
+5.times do
   new_block  = CrystalCoin::Block.next(previous_block: previous_block)
   blockchain << new_block
   previous_block = new_block
-  puts new_block.inspect
 end
 
+p blockchain
+
 ```
 
 ```
-#<CrystalCoin::Block:0x10e04abc0 @current_hash="a6d92e0787b005f25b7d4b132a71c16bdb2dbabad917d82bcdae6f2aac87b2a2", @index=1, @data="Transaction data number (1)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="c3b15c18b025cebaaa7302254910708d2ace1dd05b1a489034c25c87e579e889">
-#<CrystalCoin::Block:0x10e04aa80 @current_hash="fc0566969686cd3e9cb70e6bae86019e89b41a601fab874364df4937254c71b9", @index=2, @data="Transaction data number (2)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="a6d92e0787b005f25b7d4b132a71c16bdb2dbabad917d82bcdae6f2aac87b2a2">
-#<CrystalCoin::Block:0x10e04a980 @current_hash="cfec59ec174f7efccacd0de52a771116dae7084e38cd69cff4c6309b3da86bc5", @index=3, @data="Transaction data number (3)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="fc0566969686cd3e9cb70e6bae86019e89b41a601fab874364df4937254c71b9">
-#<CrystalCoin::Block:0x10e04a880 @current_hash="1e50b43d893b832d210ab95777f81c413cc10b30a78b8f1a0ed895a7a8766ea0", @index=4, @data="Transaction data number (4)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="cfec59ec174f7efccacd0de52a771116dae7084e38cd69cff4c6309b3da86bc5">
-#<CrystalCoin::Block:0x10e04a780 @current_hash="3ba86566e340209cfc8e59572dc76c1caa191752894d9e31da14db7e00902376", @index=5, @data="Transaction data number (5)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="1e50b43d893b832d210ab95777f81c413cc10b30a78b8f1a0ed895a7a8766ea0">
-#<CrystalCoin::Block:0x10e04a680 @current_hash="4edc238c38efb37311129201f6938aaa6b170d95d51112745b738cd9cb738386", @index=6, @data="Transaction data number (6)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="3ba86566e340209cfc8e59572dc76c1caa191752894d9e31da14db7e00902376">
-#<CrystalCoin::Block:0x10e04a580 @current_hash="e5974f5fef832fe6a3d81c7cf8342c05d198d114da5c333cbe85e84e30344567", @index=7, @data="Transaction data number (7)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="4edc238c38efb37311129201f6938aaa6b170d95d51112745b738cd9cb738386">
-#<CrystalCoin::Block:0x10e04a480 @current_hash="ec308e41c8361fe6d11eb99c89a67f4173446fcf683d9e109511fcb20782c2ab", @index=8, @data="Transaction data number (8)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="e5974f5fef832fe6a3d81c7cf8342c05d198d114da5c333cbe85e84e30344567">
-#<CrystalCoin::Block:0x10e04a380 @current_hash="035dd1a88f47f534b09a6d43b1ee2be365df6beb87b03edb4750489d82f3178b", @index=9, @data="Transaction data number (9)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="ec308e41c8361fe6d11eb99c89a67f4173446fcf683d9e109511fcb20782c2ab">
-#<CrystalCoin::Block:0x10e04a280 @current_hash="47a43a7e9a980dc3e7d08c671a02d44f7293e41a7c2059c7f118c1e0a562b6e3", @index=10, @data="Transaction data number (10)", @timestamp=2018-05-13 23:22:17 +03:00, @previous_hash="035dd1a88f47f534b09a6d43b1ee2be365df6beb87b03edb4750489d82f3178b">
+[#<CrystalCoin::Block:0x108c57c80
+  @current_hash=
+   "00df7f9d47bee95c9158e3043ddd17204e97ccd6e8958e4e41dacc7f0c6c0df6",
+  @index=0,
+  @nonce=355,
+  @previous_hash="0",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>,
+ #<CrystalCoin::Block:0x109c89740
+  @current_hash=
+   "00d188fcddd056c044c783d558fd6904ceeb9b2366339af491a293d369de4a81",
+  @index=1,
+  @nonce=260,
+  @previous_hash=
+   "00df7f9d47bee95c9158e3043ddd17204e97ccd6e8958e4e41dacc7f0c6c0df6",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>,
+ #<CrystalCoin::Block:0x109cc8500
+  @current_hash=
+   "000b71b61118b9300b4fe8cdf4a7cbcc1dac4da7a8a3150aa976309948053541",
+  @index=2,
+  @nonce=262,
+  @previous_hash=
+   "00d188fcddd056c044c783d558fd6904ceeb9b2366339af491a293d369de4a81",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>,
+ #<CrystalCoin::Block:0x109ccbe40
+  @current_hash=
+   "009111406deea4f07f807891405078a3f8537416b31ab03d78bda3f86d9ae4c5",
+  @index=3,
+  @nonce=76,
+  @previous_hash=
+   "000b71b61118b9300b4fe8cdf4a7cbcc1dac4da7a8a3150aa976309948053541",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>,
+ #<CrystalCoin::Block:0x109cd0980
+  @current_hash=
+   "0063bfc5695c0d49b291a8813c566b047323f1808a428e0eb1fca5c399547875",
+  @index=4,
+  @nonce=31,
+  @previous_hash=
+   "009111406deea4f07f807891405078a3f8537416b31ab03d78bda3f86d9ae4c5",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>,
+ #<CrystalCoin::Block:0x109cd0100
+  @current_hash=
+   "00a0c70e5412edd7389a0360b48c407ce4ddc8f14a0bcf16df277daf3c1a00c7",
+  @index=5,
+  @nonce=36,
+  @previous_hash=
+   "0063bfc5695c0d49b291a8813c566b047323f1808a428e0eb1fca5c399547875",
+  @timestamp=2018-06-04 12:13:21 +03:00,
+  @transactions=[]>
 ```
 
 ### Proof-of-Work
