@@ -1,17 +1,19 @@
 # Creating a CryptoCoin using The Crystal Programming Language
 
-This post is my attempt to understand the key aspects of the blockchain by exploring the internals. I started by reading the [original bitcoin whitepaper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand the blockchain is by building a new cryptocurrency from scratch.
+This post is my attempt to understand the key aspects of the blockchain by exploring the internals. I started by reading the [original bitcoin whitepaper](http://nakamotoinstitute.org/bitcoin/), but I felt the only way to truly understand the blockchain is by building a new cryptocurrency from scratch. 
 
 That's why I decided to create a cryptocurrency using the Crystal programming language, which I dubbed CrystalCoin. This article won’t discuss algorithm choices, hash difficulty, or similar topics. Instead, the focus will be on detailing a concrete example, which should provide a deeper, hands-on understanding of the strengths and limitations of blockchains.
 
-> If you haven’t read it yet, I suggest you take a look at Demir Selmanovic's [article Cryptocurrency for Dummies: Bitcoin and Beyond](
+> If you haven’t read it yet, I suggest you take a look at Demir Selmanovic's [article Cryptocurrency for Dummies: Bitcoin and Beyond]( 
 https://www.toptal.com/bitcoin/cryptocurrency-for-dummies-bitcoin-and-beyond).
 
 ## Why Choose Crystal Lang?
 
 For a better demonstration, I wanted to use a productive language like [Ruby](https://www.ruby-lang.org/en/) without compromising the performance. Cryptocurrency has many time consuming computations (namely _mining_ and _hashing_), and that's why compiled languages such as C++ and Java are the languages of choice for building “real” cryptocurrencies. That being said, I wanted to use a language with a cleaner syntax so I could keep development fun and allow better readability.
 
-So, why did I decide to use the [Crystal programming language](https://crystal-lang.org/)? Crystal’s syntax is heavily inspired by Ruby’s, so for me it feels natural to read and easy to write. It has the added benefit of a lower learning curve, specially for experienced Ruby developers.
+![logo](./assets/logo.png)
+
+So, why did I decide to use the [Crystal programming language](https://crystal-lang.org/)? Crystal’s syntax is heavily inspired by Ruby’s, so for me it feels natural to read and easy to write. It has the added benefit of a lower learning curve, specially for experienced Ruby developers. 
 
 This is how the Crystal lang team puts it at their official website:
 
