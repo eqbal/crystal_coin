@@ -14,11 +14,6 @@ module CrystalCoin
       timestamp: Time
     )
 
-    property current_hash : String
-    property index : Int32
-    property nonce : Int32
-    property previous_hash : String
-
     def initialize(index = 0, transactions = [] of Transaction, previous_hash = "hash")
       @transactions = transactions
       @index = index
