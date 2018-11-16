@@ -5,8 +5,6 @@ authors:
   - eqbal <info@eqbalq.com>
 
 dependencies:
-  openssl:
-    github: datanoise/openssl.cr
   kemal:
     github: kemalcr/kemal
 
